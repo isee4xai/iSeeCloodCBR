@@ -1,0 +1,49 @@
+
+name:  build Cloud CBR API services
+
+on:
+  push:
+    branches: [ dev ]
+    paths: 
+      - 'api/**'
+  
+  workflow_dispatch:
+
+    
+
+jobs:
+
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Login to DockerHub 
+      uses: docker/login-action@v1 
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build and push  the Docker image
+      uses: docker/build-push-action@v3
+      with:
+          push: true
+          file: 'api/Dockerfile'
+          context: 'api/'
+          tags: isee4xai/isee-clood-cbr-api:dev
+          
+  
+  deploy:
+      needs: build-image
+      runs-on: ubuntu-latest
+      name: Deploy on dev platform 
+      steps:
+        - uses: distributhor/workflow-webhook@v2
+          env:
+            webhook_url: ${{ secrets.WEBHOOK_URL_DEV }}
+            webhook_secret: ${{ secrets.WEBHOOK_TOKEN_DEV }}
+            data: '{"DOCKER_SERVICE":"cloodcbr"}'
+            webhook_type: 'json-extended'
+          
