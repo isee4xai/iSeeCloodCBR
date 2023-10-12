@@ -14,13 +14,13 @@ def reuse_cases(data):
   # get reuse type
   reuse_type = data.get('reuse_type', None)
   reuse_feature = data.get('reuse_feature', None)
+  print(data)
   if reuse_type is None or reuse_feature is None:
     return None
   elif reuse_type.startswith('_'):  # import custom module for use operation
     module_name = 'custom_reuse_scripts.' + reuse_type
     reuse_module = importlib.import_module(module_name)
     # execute and return
-    print(reuse_feature)
     if reuse_feature is 'transform':
       return reuse_module.transform_adapt(data)
     elif reuse_feature is 'applicability':
