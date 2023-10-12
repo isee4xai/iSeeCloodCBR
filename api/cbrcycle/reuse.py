@@ -13,13 +13,19 @@ import importlib
 def reuse_cases(data):
   # get reuse type
   reuse_type = data.get('reuse_type', None)
-  if reuse_type is None:  # could be replaced by a default reuse method
+  reuse_feature = data.get('reuse_feature', None)
+  if reuse_type is None or reuse_feature is None:
     return None
   elif reuse_type.startswith('_'):  # import custom module for use operation
     module_name = 'custom_reuse_scripts.' + reuse_type
     reuse_module = importlib.import_module(module_name)
     # execute and return
-    return reuse_module.reuse(data)
+    if reuse_feature is 'transform':
+      return reuse_module.transform_adapt(data)
+    elif reuse_feature is 'applicability':
+      return reuse_module.applicability(data)
+    elif reuse_feature is 'substitute':
+      return reuse_module.substitute(data)
   else:  # generic reuse operation
     # logic for any generic reuse operations below
     return None
