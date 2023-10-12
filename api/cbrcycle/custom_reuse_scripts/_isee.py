@@ -23,6 +23,8 @@ def transform_adapt(input=None):
     # print(input)
     if input is None:
         return {}
+    
+    print("transform adapt")
 
     query_case = input.get("query_case")
     neighbours = input.get("neighbours")

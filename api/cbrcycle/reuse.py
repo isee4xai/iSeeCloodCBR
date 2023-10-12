@@ -20,6 +20,7 @@ def reuse_cases(data):
     module_name = 'custom_reuse_scripts.' + reuse_type
     reuse_module = importlib.import_module(module_name)
     # execute and return
+    print(reuse_feature)
     if reuse_feature is 'transform':
       return reuse_module.transform_adapt(data)
     elif reuse_feature is 'applicability':
