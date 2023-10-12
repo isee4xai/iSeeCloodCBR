@@ -858,6 +858,7 @@ def cbr_reuse(event, context=None):
   result = {}
   params = json.loads(event['body'])  # parameters in request body
   result = reuse.reuse_cases(params)
+  print('hander', result)
 
   response = {
     "statusCode": 200,
