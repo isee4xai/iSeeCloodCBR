@@ -20,20 +20,21 @@ def transform_adapt(input=None):
     an ordered list of cases (list of dict) from which a solution is constructed (neighbours).
     "acceptance_threshold" which determines cutoff for average similarity is an optional parameter that is set to 0.8 by default. 
     """
-    # print(input)
+    print("step 0")
     if input is None:
         return {}
-    
+
     print("transform adapt")
 
     query_case = input.get("query_case")
     neighbours = input.get("neighbours")
+    print("step 1")
     acceptance_threshold = input.get(
         "acceptance_threshold", 0.8)  # default as 0.8
 
     if query_case is None or neighbours is None:
         return {}
-
+    print("step 2")
     query_questions = []
     for index, value in enumerate(query_case['UserQuestion']):
         obj = {'id': str(index), 'k': -1,
@@ -42,6 +43,7 @@ def transform_adapt(input=None):
     pairings, score, neighbours_considered, intent_overlap, case_questions = MATCH(
         query_questions, neighbours, 1, acceptance_threshold)
     # get details of pairings
+    print("step 3")
     res = []
     for k, v in pairings.items():
         pair_obj = {}
@@ -53,7 +55,7 @@ def transform_adapt(input=None):
             res.append(pair_obj)
     pairings = res
     adapted_solution = adapt_solution(pairings, neighbours)
-
+    print("step 4")
     return {
         "pairings": pairings,
         "score": score,
@@ -983,9 +985,9 @@ def extract_children_ids(node):
 
 # Find the parent
 def get_parent_node(node_id, nodes):
-#     node_dict = nodes.keys()
+    #     node_dict = nodes.keys()
     for parent_node_id, node_data in nodes.items():
-#         print('parent_node_id', parent_node_id)
+        #         print('parent_node_id', parent_node_id)
         if "firstChild" in node_data and node_data["firstChild"]["Id"] == node_id:
             return parent_node_id
         if "Next" in node_data and node_data["Next"]["Id"] == node_id:
@@ -999,6 +1001,8 @@ def get_parent_node(node_id, nodes):
     return None
 
 # Function to replace a node with a new node by ID
+
+
 def substitute_node(node, target_id, new_node):
     if isinstance(node, dict):
         # Check if "Id" matches the target
@@ -1011,54 +1015,56 @@ def substitute_node(node, target_id, new_node):
                 next_child = node['firstChild'].get('Next')
                 while next_child is not None:
                     if next_child["Id"] == target_id:
-                        next_child["Id"]= new_node
+                        next_child["Id"] = new_node
                     else:
                         next_child = next_child.get('Next')
     return node
 
 
 def get_modified_case(original_tree, selected_subtree, most_similar_subtree):
-    
     """
         original_tree is the original tree where we need to remove the subtree. It is in json format
         selected_subtree should be the id of the node selected by the user
         most_similar_subtree is the tree to replace the old sub BT that the user wants to remove
     """
-    
+
     # Remove the selected_composite_node, their children and grandchildren from original_case
     selected_composite_node = selected_subtree[0]['data']['trees'][0]['root']
-    modified_tree = search_and_remove(original_tree[0]['data'], selected_composite_node)
+    modified_tree = search_and_remove(
+        original_tree[0]['data'], selected_composite_node)
     # so here, we have the tree without the tree
-    
+
     # Find the similar composite node id
     similar_composite_node = next(iter(most_similar_subtree.keys()))
     # print('\nsimilar_composite_node:',similar_composite_node)
 
     # Find the parent of the selected_composite_node
-    parent = get_parent_node(selected_composite_node, modified_tree['trees'][0]['nodes'])
+    parent = get_parent_node(selected_composite_node,
+                             modified_tree['trees'][0]['nodes'])
     # print("\nParent ID:", parent)
     # parent_node = fetch_node_details(modified_tree['trees'][0]['nodes'], parent)
     parent_node = modified_tree['trees'][0]['nodes'][parent]
-    
+
     # child_ids = extract_children_ids(parent_node)
     # print('child_ids:', child_ids)
-    
+
     # # Substitute the target node with the new JSON structure
     # Substitute selected_composite_node with similar_composite_node
-    updated_parent_node = substitute_node(parent_node, selected_composite_node, similar_composite_node)
+    updated_parent_node = substitute_node(
+        parent_node, selected_composite_node, similar_composite_node)
 #     print('\nupdated_parent_node', updated_parent_node)
 #     print('\nmodified_tree:', modified_tree)
-    
+
     # # Add the most_similar_subtree to the modified tree
     modified_tree['trees'][0]['nodes'].update(most_similar_subtree)
-    #print('\nFinal tree:', modified_tree)
+    # print('\nFinal tree:', modified_tree)
 
     modified_tree_final = copy.deepcopy(original_tree)
     modified_tree_final[0]['data'] = modified_tree
-    
+
 #     print("my_modified_tree")
 #     print(modified_tree_final)
-    
+
     return modified_tree
 
 
