@@ -513,23 +513,26 @@ def explainers_applicability(context, explainer_props, ontology_props, explain):
 
 
 def applicability(data=None):
+    print("step 1")
     if data is None:
         return {}
 
-    ontology_support = data["ontology_props"]
-    query_case = data["query_case"]
-    explain = data["explain"] == 'true'
+    ontology_support = data.get("ontology_props")
+    query_case = data.get("query_case")
+    explain = data.get("explain") == 'true'
+    print("step 2")
 
     if ontology_support is None:
         return {}
 
     explainer_props = ontology_support["explainer_props"]
     ontology_props = ontology_support["ontology_props"]
-
+    print("step 3")
     usecase_context = get_usecase_context(query_case)
+    print("step 4")
     result = explainers_applicability(
         usecase_context, explainer_props, ontology_props, explain)
-
+    print("step 5")
     return result
 
 
@@ -662,12 +665,9 @@ def replace_explainer(data):
     similarities = ontology_support["similarities"]
     ontology_props = ontology_support["ontology_props"]
 
-    applicabilities = applicability({
-        "query_case": query_case,
-        "explainer_props": explainer_props,
-        "ontology_props": None,
-        "explain": 'false'
-    })
+    usecase_context = get_usecase_context(query_case)
+    applicabilities = explainers_applicability(
+        usecase_context, explainer_props, ontology_props, False)
 
     similarities = similarities[query_explainer]
     query_explainer_props_extended = [
