@@ -22,13 +22,10 @@ def reuse_cases(data):
     reuse_module = importlib.import_module(module_name)
     # execute and return
     if reuse_feature == 'transform':
-      print("reuse_feature", reuse_feature)
       return reuse_module.transform_adapt(data)
     elif reuse_feature == 'applicability':
-      print("reuse_feature", reuse_feature)
       return reuse_module.applicability(data)
     elif reuse_feature == 'substitute':
-      print("reuse_feature", reuse_feature)
       return reuse_module.substitute(data)
     else:
       return None
