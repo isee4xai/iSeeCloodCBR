@@ -645,13 +645,13 @@ def match_prop(criteria_prop, explainer_prop):
 def replace_explainer(data):
     if data is None:
         return {}
-    print("step 1")
+    
     ontology_support = data.get("ontology_props")
     query_case = data.get("query_case")
     explain = data.get("explain") == 'true'
     query_explainer = data.get("query_explainer")
     criteria = data.get("criteria")
-    print("step 2")
+
     if ontology_support is None:
         return {}
 
@@ -659,11 +659,11 @@ def replace_explainer(data):
     explainer_props_extended = ontology_support["explainer_props_extended"]
     similarities = ontology_support["similarities"]
     ontology_props = ontology_support["ontology_props"]
-    print("step 3")
+
     usecase_context = get_usecase_context(query_case)
     applicabilities = explainers_applicability(
         usecase_context, explainer_props, ontology_props, False)
-    print("step 4")
+
     similarities = similarities[query_explainer]
     query_explainer_props_extended = [
         e for e in explainer_props_extended if e["name"] == query_explainer][0]
@@ -678,19 +678,19 @@ def replace_explainer(data):
         explainer_props_filtered = explainer_props_filtered
         similarities = {k: s for k, s in similarities.items()
                         if k != query_explainer}
-    print("step 5")
+
     explainers_props_extended_filtered = [e for e in explainer_props_extended if e["name"] in [
         f["name"] for f in explainer_props_filtered]]
     nlg_result = nlg_batch(query_explainer_props_extended,
                            explainers_props_extended_filtered, ontology_props) if explain else {}
-    print("step 6")
+
     result = [{"explainer": e["name"],
                "explanation":nlg_result[e["name"]] if e["name"] in nlg_result else "",
                "similarity":similarities[e["name"]]
                } for e in explainer_props_filtered]
-    print("step 7")
+
     result_sorted = sorted(result, key=lambda x: x["similarity"], reverse=True)
-    print("step 8", result_sorted)
+
     return result_sorted
 
 
@@ -1064,7 +1064,7 @@ def get_modified_case(original_tree, selected_subtree, most_similar_subtree):
 def replace_subtree(data):
     if data is None:
         return {}
-
+    print("step 1")
     ontology_support = data.get("ontology_props")
     query_case = data.get("query_case")
     explain = data.get("explain") == 'true'
@@ -1072,7 +1072,7 @@ def replace_subtree(data):
     query_tree = data.get("query_tree")
     neighbours = data.get("neighbours")
     criteria = data.get("criteria")
-
+    print("step 1")
     if ontology_support is None:
         return {}
 
@@ -1080,14 +1080,14 @@ def replace_subtree(data):
     explainer_props_extended = ontology_support["explainer_props_extended"]
     similarities = ontology_support["similarities"]
     ontology_props = ontology_support["ontology_props"]
-
+    print("step 2")
     usecase_context = get_usecase_context(query_case)
     applicabilities = explainers_applicability(
         usecase_context, explainer_props, ontology_props, False)
-
+    print("step 3")
     # getting the graph format of the solutions (trees)
     tree_dict = convert_to_graph(neighbours)
-
+    print("step 4")
     # here we are checking that the similar BT is applicable
     tree_dict_filtered = dict()
     for key, tree in tree_dict.items():
@@ -1105,11 +1105,11 @@ def replace_subtree(data):
                     tree_dict_filtered[key] = tree
             else:
                 tree_dict_filtered[key] = tree
-
+    print("step 5")
     # trick to make the translation properly
     _query_subtree = [query_subtree]
     _query_subtree = convert_to_graph(_query_subtree)['tree_1']['tree_graph']
-
+    print("step 6")
     # for every BT in the case base:
     #   compare the query with that BT (taking into account that the query is not the same to the case)
     solution = {}
@@ -1119,10 +1119,10 @@ def replace_subtree(data):
         if _query_subtree != tree_case:  # does this work?
             solution[bt] = edit_distance(
                 _query_subtree, tree_case, semantic_delta)
-
+    print("step 7")
     # Sort solution to get the BT with the lowest edit distance
     sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
-
+    print("step 8")
     my_solutions = list()
     for key in sorted_BTs:
         # getting the most similar one and the graph format of that BT
@@ -1134,7 +1134,7 @@ def replace_subtree(data):
         modified_tree = get_modified_case(
             query_tree, query_subtree, solution_no_root)
         my_solutions.append(modified_tree)
-
+    print("step 9")
     return my_solutions
 
 
