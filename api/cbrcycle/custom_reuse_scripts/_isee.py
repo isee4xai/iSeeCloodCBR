@@ -513,26 +513,21 @@ def explainers_applicability(context, explainer_props, ontology_props, explain):
 
 
 def applicability(data=None):
-    print("step 1")
     if data is None:
         return {}
 
     ontology_support = data.get("ontology_props")
     query_case = data.get("query_case")
     explain = data.get("explain") == 'true'
-    print("step 2")
 
     if ontology_support is None:
         return {}
 
     explainer_props = ontology_support["explainer_props"]
     ontology_props = ontology_support["ontology_props"]
-    print("step 3")
     usecase_context = get_usecase_context(query_case)
-    print("step 4")
     result = explainers_applicability(
         usecase_context, explainer_props, ontology_props, explain)
-    print("step 5")
     return result
 
 
