@@ -645,13 +645,13 @@ def match_prop(criteria_prop, explainer_prop):
 def replace_explainer(data):
     if data is None:
         return {}
-
+    print("step 1")
     ontology_support = data.get("ontology_props")
     query_case = data.get("query_case")
     explain = data.get("explain") == 'true'
     query_explainer = data.get("query_explainer")
     criteria = data.get("criteria")
-
+    print("step 2")
     if ontology_support is None:
         return {}
 
@@ -659,11 +659,11 @@ def replace_explainer(data):
     explainer_props_extended = ontology_support["explainer_props_extended"]
     similarities = ontology_support["similarities"]
     ontology_props = ontology_support["ontology_props"]
-
+    print("step 3")
     usecase_context = get_usecase_context(query_case)
     applicabilities = explainers_applicability(
         usecase_context, explainer_props, ontology_props, False)
-
+    print("step 4")
     similarities = similarities[query_explainer]
     query_explainer_props_extended = [
         e for e in explainer_props_extended if e["name"] == query_explainer][0]
@@ -678,18 +678,19 @@ def replace_explainer(data):
         explainer_props_filtered = explainer_props_filtered
         similarities = {k: s for k, s in similarities.items()
                         if k != query_explainer}
-
+    print("step 5")
     explainers_props_extended_filtered = [e for e in explainer_props_extended if e["name"] in [
         f["name"] for f in explainer_props_filtered]]
     nlg_result = nlg_batch(query_explainer_props_extended,
                            explainers_props_extended_filtered, ontology_props) if explain else {}
-
+    print("step 6")
     result = [{"explainer": e["name"],
                "explanation":nlg_result[e["name"]] if e["name"] in nlg_result else "",
                "similarity":similarities[e["name"]]
                } for e in explainer_props_filtered]
-
+    print("step 7")
     result_sorted = sorted(result, key=lambda x: x["similarity"], reverse=True)
+    print("step 8", result_sorted)
     return result_sorted
 
 
@@ -1146,11 +1147,12 @@ def substitute(data):
 
     if ontology_support is None or query_case is None:
         return {}
+    print(type(data))
+    print(data.get("query_explainer"))
+    print(data.get("query_subtree"))
 
-    if "query_explainer" in data:
-        print("query_explainer")
+    if data.get("query_explainer"):
         return replace_explainer(data)
-    elif "query_subtree" in data:
-        print("query_subtree")
+    elif data.get("query_subtree"):
         return replace_subtree(data)
     return {}
