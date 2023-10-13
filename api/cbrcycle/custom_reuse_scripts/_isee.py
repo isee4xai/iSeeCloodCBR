@@ -2,9 +2,9 @@
 import requests
 import config as cfg
 import uuid
-# import numpy as np
-# import edist.sed as sed
-# import copy
+import numpy as np
+import edist.sed as sed
+import copy
 
 '''
 functions for transformational adaptation
@@ -404,739 +404,739 @@ functions for constructive adaptation
 2. substitute explainer - get a list of replacement explainers based on use case applicability and search criteria ordered by similarity
 3. substitute subtree - get a list of replacement subtrees based on use case applicability and search criteria ordered by similarity
 '''
-# ANY_URI = 'http://www.w3id.org/iSeeOnto/explainer#Any'
+ANY_URI = 'http://www.w3id.org/iSeeOnto/explainer#Any'
 
-# INTENTS = {
-#     "DEBUGGING": ["Is this the same outcome for similar instances?", "Is this instance a common occurrence?"],
-#     "TRANSPARENCY": ["What is the impact of feature X on the outcome?", "How does feature X impact the outcome?", "What are the necessary features that guarantee this outcome?", "Why does the AI system have given outcome A?", "Which feature contributed to the current outcome?", "How does the AI system respond to feature X?", "What is the goal of the AI system?", "What is the scope of the AI system capabilities?", "What features does the AI system consider?", "What are the important features for the AI system?", "What is the impact of feature X on the AI system?", "How much evidence has been considered to build the AI system?", "How much evidence has been considered in the current outcome?", "What are the possible outcomes of the AI system?", "What features are used by the AI system?"],
-#     "PERFORMANCE": ["How confident is the AI system with the outcome?", "Which instances get a similar outcome?", "Which instances get outcome A?", "What are the results when others use the AI System?", "How accurate is the AI system?", "How reliable is the AI system?", "In what situations does the AI system make errors?", "What are the limitations of the AI system?", "In what situations is the AI system likely to be correct?"],
-#     "COMPLIANCY": ["How well does the AI system capture the real-world?", "Why are instances A and B given different outcomes?"],
-#     "COMPREHENSIBILITY": ["How to improve the AI system performance?", "What does term X mean?", "What is the overall logic of the AI system?", "What kind of algorithm is used in the AI system?"],
-#     "EFFECTIVENESS": ["What would be the outcome if features X is changed to value V?", "What other instances would get the same outcome?", "How does the AI system react if feature X is changed?", "What is the impact of the current outcome?"],
-#     "ACTIONABILITY": ["What are the alternative scenarios available?", "What type of instances would get a different outcome?", "How can I change feature X to get the same outcome?", "How to get a different outcome?", "How to change the instance to get a different outcome?", "Why does the AI system have given outcome A not B?", "Which features need changed to get a different outcome?"]
-# }
+INTENTS = {
+    "DEBUGGING": ["Is this the same outcome for similar instances?", "Is this instance a common occurrence?"],
+    "TRANSPARENCY": ["What is the impact of feature X on the outcome?", "How does feature X impact the outcome?", "What are the necessary features that guarantee this outcome?", "Why does the AI system have given outcome A?", "Which feature contributed to the current outcome?", "How does the AI system respond to feature X?", "What is the goal of the AI system?", "What is the scope of the AI system capabilities?", "What features does the AI system consider?", "What are the important features for the AI system?", "What is the impact of feature X on the AI system?", "How much evidence has been considered to build the AI system?", "How much evidence has been considered in the current outcome?", "What are the possible outcomes of the AI system?", "What features are used by the AI system?"],
+    "PERFORMANCE": ["How confident is the AI system with the outcome?", "Which instances get a similar outcome?", "Which instances get outcome A?", "What are the results when others use the AI System?", "How accurate is the AI system?", "How reliable is the AI system?", "In what situations does the AI system make errors?", "What are the limitations of the AI system?", "In what situations is the AI system likely to be correct?"],
+    "COMPLIANCY": ["How well does the AI system capture the real-world?", "Why are instances A and B given different outcomes?"],
+    "COMPREHENSIBILITY": ["How to improve the AI system performance?", "What does term X mean?", "What is the overall logic of the AI system?", "What kind of algorithm is used in the AI system?"],
+    "EFFECTIVENESS": ["What would be the outcome if features X is changed to value V?", "What other instances would get the same outcome?", "How does the AI system react if feature X is changed?", "What is the impact of the current outcome?"],
+    "ACTIONABILITY": ["What are the alternative scenarios available?", "What type of instances would get a different outcome?", "How can I change feature X to get the same outcome?", "How to get a different outcome?", "How to change the instance to get a different outcome?", "Why does the AI system have given outcome A not B?", "Which features need changed to get a different outcome?"]
+}
 
-# INSERTION_COST = 1.
-# DELETION_COST = 1.
-# LEAVE_CHANGE = 1.
-# DEFAULT_COST = 100
-
-
-# def get_usecase_context(usecase):
-#     context = {}
-#     context["ai_task"] = usecase["settings"]["ai_task"]
-#     context["ai_method"] = usecase["settings"]["ai_method"]
-#     context["dataset_type"] = usecase["settings"]["dataset_type"]
-#     context["implementation"] = usecase["model"]["backend"]
-
-#     return context
+INSERTION_COST = 1.
+DELETION_COST = 1.
+LEAVE_CHANGE = 1.
+DEFAULT_COST = 100
 
 
-# def format_attr(attr, code, key, ontology_prop):
-#     if (code == 0):
-#         return ontology_prop[key][attr]
-#     elif (code == 1):
-#         if isinstance(attr, list):
-#             if isinstance(attr[-1], list):
-#                 attr = attr[-1]
-#             if (len(attr) == 1):
-#                 return format_attr(attr[-1], 0, key, ontology_prop)
-#             i = 0
-#             msg = ""
-#             while i < len(attr)-1:
-#                 msg = msg+format_attr(attr[i], 0, key, ontology_prop)+", "
-#                 i = i+1
-#             msg = msg[:-2]+" and " + \
-#                 format_attr(attr[i], 0, key, ontology_prop)
-#             return msg
-#         else:
-#             return format_attr(attr, 0, key, ontology_prop)
-#     elif (code == 2):
-#         if isinstance(attr, list) and isinstance(attr[0], list):
-#             attr = [a[-1] for a in attr]
-#             return format_attr(attr, 1, key, ontology_prop)
-#     elif (code == 3):
-#         if isinstance(attr, list):
-#             if isinstance(attr[-1], list):
-#                 attr = attr[-1]
-#         attr = attr[-1]
-#         return format_attr(attr, 0, key, ontology_prop)
+def get_usecase_context(usecase):
+    context = {}
+    context["ai_task"] = usecase["settings"]["ai_task"]
+    context["ai_method"] = usecase["settings"]["ai_method"]
+    context["dataset_type"] = usecase["settings"]["dataset_type"]
+    context["implementation"] = usecase["model"]["backend"]
+
+    return context
 
 
-# def explainer_applicability(context, explainer, ontology_props, explain):
-#     flag, msg = True, ''
-#     if context["dataset_type"] != explainer["dataset_type"]:
-#         flag = False
-#         if explain:
-#             msg = msg+"\n- Dataset Type Mismatch: The model uses " + \
-#                 format_attr(context["dataset_type"], 0, "DatasetType", ontology_props) + \
-#                 " data but " + explainer["name"] + \
-#                 " only supports " + \
-#                 format_attr(explainer["dataset_type"], 0,
-#                             "DatasetType", ontology_props) + " data."
-
-#     if ANY_URI not in explainer["implementation"] and context["implementation"] not in explainer["implementation"]:
-#         flag = False
-#         if explain:
-#             msg = msg+"\n- Implementation Mismatch: This is a " + \
-#                 format_attr(context["implementation"], 0, "Implementation_Framework", ontology_props) + \
-#                 " model but " + explainer["name"] + " only supports " + \
-#                 format_attr(explainer["implementation"], 1,
-#                             "Implementation_Framework", ontology_props) + " implementations."
-
-#     if ANY_URI not in explainer["ai_methods"] and len(set(_i for i in context["ai_method"] for _i in i) & set(explainer["ai_methods"])) == 0:
-#         flag = False
-#         if explain:
-#             msg = msg+"\n- AI Method Mismatch: The model is a " + \
-#                 format_attr(context["ai_method"], 2, "AIMethod", ontology_props) + \
-#                 " but " + explainer["name"] + " only supports " + \
-#                 format_attr(explainer["ai_methods"], 1,
-#                             "AIMethod", ontology_props) + "."
-
-#     if ANY_URI not in explainer["ai_tasks"] and len(set(context["ai_task"]) & set(explainer["ai_tasks"])) == 0:
-#         flag = False
-#         if explain:
-#             msg = msg+"\n- AI Task Mismatch: " + explainer["name"] + " does not support " + \
-#                 format_attr(context["ai_task"], 3, "AITask",
-#                             ontology_props) + " tasks."
-
-#     return flag, msg
+def format_attr(attr, code, key, ontology_prop):
+    if (code == 0):
+        return ontology_prop[key][attr]
+    elif (code == 1):
+        if isinstance(attr, list):
+            if isinstance(attr[-1], list):
+                attr = attr[-1]
+            if (len(attr) == 1):
+                return format_attr(attr[-1], 0, key, ontology_prop)
+            i = 0
+            msg = ""
+            while i < len(attr)-1:
+                msg = msg+format_attr(attr[i], 0, key, ontology_prop)+", "
+                i = i+1
+            msg = msg[:-2]+" and " + \
+                format_attr(attr[i], 0, key, ontology_prop)
+            return msg
+        else:
+            return format_attr(attr, 0, key, ontology_prop)
+    elif (code == 2):
+        if isinstance(attr, list) and isinstance(attr[0], list):
+            attr = [a[-1] for a in attr]
+            return format_attr(attr, 1, key, ontology_prop)
+    elif (code == 3):
+        if isinstance(attr, list):
+            if isinstance(attr[-1], list):
+                attr = attr[-1]
+        attr = attr[-1]
+        return format_attr(attr, 0, key, ontology_prop)
 
 
-# def explainers_applicability(context, explainer_props, ontology_props, explain):
-#     result = {}
-#     for e_props in explainer_props:
-#         flag, msg = explainer_applicability(
-#             context, e_props, ontology_props, explain)
-#         result[e_props["name"]] = {'flag': flag,
-#                                    'message': msg}
-#     return result
+def explainer_applicability(context, explainer, ontology_props, explain):
+    flag, msg = True, ''
+    if context["dataset_type"] != explainer["dataset_type"]:
+        flag = False
+        if explain:
+            msg = msg+"\n- Dataset Type Mismatch: The model uses " + \
+                format_attr(context["dataset_type"], 0, "DatasetType", ontology_props) + \
+                " data but " + explainer["name"] + \
+                " only supports " + \
+                format_attr(explainer["dataset_type"], 0,
+                            "DatasetType", ontology_props) + " data."
+
+    if ANY_URI not in explainer["implementation"] and context["implementation"] not in explainer["implementation"]:
+        flag = False
+        if explain:
+            msg = msg+"\n- Implementation Mismatch: This is a " + \
+                format_attr(context["implementation"], 0, "Implementation_Framework", ontology_props) + \
+                " model but " + explainer["name"] + " only supports " + \
+                format_attr(explainer["implementation"], 1,
+                            "Implementation_Framework", ontology_props) + " implementations."
+
+    if ANY_URI not in explainer["ai_methods"] and len(set(_i for i in context["ai_method"] for _i in i) & set(explainer["ai_methods"])) == 0:
+        flag = False
+        if explain:
+            msg = msg+"\n- AI Method Mismatch: The model is a " + \
+                format_attr(context["ai_method"], 2, "AIMethod", ontology_props) + \
+                " but " + explainer["name"] + " only supports " + \
+                format_attr(explainer["ai_methods"], 1,
+                            "AIMethod", ontology_props) + "."
+
+    if ANY_URI not in explainer["ai_tasks"] and len(set(context["ai_task"]) & set(explainer["ai_tasks"])) == 0:
+        flag = False
+        if explain:
+            msg = msg+"\n- AI Task Mismatch: " + explainer["name"] + " does not support " + \
+                format_attr(context["ai_task"], 3, "AITask",
+                            ontology_props) + " tasks."
+
+    return flag, msg
 
 
-# def applicability(data=None):
-#     if data is None:
-#         return {}
-
-#     ontology_support = data.get("ontology_props")
-#     query_case = data.get("query_case")
-#     explain = data.get("explain") == 'true'
-
-#     if ontology_support is None:
-#         return {}
-
-#     explainer_props = ontology_support["explainer_props"]
-#     ontology_props = ontology_support["ontology_props"]
-
-#     usecase_context = get_usecase_context(query_case)
-#     result = explainers_applicability(
-#         usecase_context, explainer_props, ontology_props, explain)
-
-#     return result
+def explainers_applicability(context, explainer_props, ontology_props, explain):
+    result = {}
+    for e_props in explainer_props:
+        flag, msg = explainer_applicability(
+            context, e_props, ontology_props, explain)
+        result[e_props["name"]] = {'flag': flag,
+                                   'message': msg}
+    return result
 
 
-# def nlg_batch(query, others, ontology_props):
-#     results = {}
-#     for other in others:
-#         results[other["name"]] = nlg(query, other, ontology_props)
-#     return results
+def applicability(data=None):
+    if data is None:
+        return {}
+
+    ontology_support = data["ontology_props"]
+    query_case = data["query_case"]
+    explain = data["explain"] == 'true'
+
+    if ontology_support is None:
+        return {}
+
+    explainer_props = ontology_support["explainer_props"]
+    ontology_props = ontology_support["ontology_props"]
+
+    usecase_context = get_usecase_context(query_case)
+    result = explainers_applicability(
+        usecase_context, explainer_props, ontology_props, explain)
+
+    return result
 
 
-# def nlg(ex1, ex2, ontology_props):
-#     explanation = ""
-
-#     # explanation about why they are similar
-#     explanation = "Explainers are similar because "
-#     if ex1['dataset_type'] == ex2['dataset_type']:
-#         explanation = explanation + "they can be applied to the same dataset type: " + \
-#             ontology_props["DatasetType"][ex1['dataset_type']] + " data "
-#     if ex1['concurrentness'] == ex2['concurrentness']:
-#         explanation = explanation + ', ' + "they have the same concurrentness: " + \
-#             ontology_props["Concurrentness"][ex1['concurrentness']]
-#     if ex1['scope'] == ex2['scope']:
-#         explanation = explanation + ', ' + "they have the same scope: " + \
-#             ontology_props["Scope"][ex1['scope']]
-#     if ex1['portability'] == ex2['portability']:
-#         explanation = explanation + ', ' + "they have the same portability: " + \
-#             ontology_props["Portability"][ex1['portability']]
-#     if ex1['target'] == ex2['target']:
-#         explanation = explanation + ', ' + "they have the same target type: " + \
-#             ontology_props["Target"][ex1['target']]
-#     if ex1['computational_complexity'] == ex2['computational_complexity']:
-#         explanation = explanation + ', ' + "they have the same computational complexity: " + \
-#             ontology_props["ComputationalComplexity"][ex1['computational_complexity']]
-
-#     # for the complex ones, if they share one in the array, show
-#     # if they share more than one, show the most deep (the one in the beginning of the array)
-#     technique = nlg_complex(ex1['technique'], ex2['technique'],
-#                             "they are the same explainability technique type: ", ontology_props['ExplainabilityTechnique']).strip()
-#     explanation = explanation + (', ' + technique if technique else '')
-#     explanation_type = nlg_complex(ex1['explanation_type'], ex2['explanation_type'],
-#                                    "they show the same explanation type: ", ontology_props['Explanation']).strip()
-#     explanation = explanation + \
-#         (', ' + explanation_type if explanation_type else '')
-#     implementation = nlg_complex(ex1['implementation'], ex2['implementation'],
-#                                  "they use the same backend: ", ontology_props['Implementation_Framework'], True).strip()
-#     implementation = implementation + (', ' + technique if technique else '')
-
-#     presentation = nlg_complex_multi(ex1['presentations'], ex2['presentations'],
-#                                      "they show the explanation with the same output type: ", ontology_props['InformationContentEntity']).strip()
-#     explanation = explanation + (', ' + presentation if presentation else '')
-#     ai_methods = nlg_complex_multi(ex1['ai_methods'], ex2['ai_methods'],
-#                                    "they are applicable to the same AI method type: ", ontology_props['AIMethod']).strip()
-#     explanation = explanation + (', ' + ai_methods if ai_methods else '')
-#     ai_tasks = nlg_complex_multi(ex1['ai_tasks'], ex2['ai_tasks'],
-#                                  "and they are applicable to the same AI task type: ", ontology_props['AITask']).strip()
-#     explanation = explanation + (', ' + ai_tasks if ai_tasks else '')
-#     return explanation
+def nlg_batch(query, others, ontology_props):
+    results = {}
+    for other in others:
+        results[other["name"]] = nlg(query, other, ontology_props)
+    return results
 
 
-# def nlg_complex(v1, v2, pretext, ontology, isBackend=False):
-#     overlap = [x for x in v1 if x in v2]
-#     if overlap:
-#         if isBackend == False:
-#             return pretext + ontology[overlap[-1]]
-#         else:
-#             return pretext + ','.join([ontology[o] for o in overlap])
-#     return ""
+def nlg(ex1, ex2, ontology_props):
+    explanation = ""
+
+    # explanation about why they are similar
+    explanation = "Explainers are similar because "
+    if ex1['dataset_type'] == ex2['dataset_type']:
+        explanation = explanation + "they can be applied to the same dataset type: " + \
+            ontology_props["DatasetType"][ex1['dataset_type']] + " data "
+    if ex1['concurrentness'] == ex2['concurrentness']:
+        explanation = explanation + ', ' + "they have the same concurrentness: " + \
+            ontology_props["Concurrentness"][ex1['concurrentness']]
+    if ex1['scope'] == ex2['scope']:
+        explanation = explanation + ', ' + "they have the same scope: " + \
+            ontology_props["Scope"][ex1['scope']]
+    if ex1['portability'] == ex2['portability']:
+        explanation = explanation + ', ' + "they have the same portability: " + \
+            ontology_props["Portability"][ex1['portability']]
+    if ex1['target'] == ex2['target']:
+        explanation = explanation + ', ' + "they have the same target type: " + \
+            ontology_props["Target"][ex1['target']]
+    if ex1['computational_complexity'] == ex2['computational_complexity']:
+        explanation = explanation + ', ' + "they have the same computational complexity: " + \
+            ontology_props["ComputationalComplexity"][ex1['computational_complexity']]
+
+    # for the complex ones, if they share one in the array, show
+    # if they share more than one, show the most deep (the one in the beginning of the array)
+    technique = nlg_complex(ex1['technique'], ex2['technique'],
+                            "they are the same explainability technique type: ", ontology_props['ExplainabilityTechnique']).strip()
+    explanation = explanation + (', ' + technique if technique else '')
+    explanation_type = nlg_complex(ex1['explanation_type'], ex2['explanation_type'],
+                                   "they show the same explanation type: ", ontology_props['Explanation']).strip()
+    explanation = explanation + \
+        (', ' + explanation_type if explanation_type else '')
+    implementation = nlg_complex(ex1['implementation'], ex2['implementation'],
+                                 "they use the same backend: ", ontology_props['Implementation_Framework'], True).strip()
+    implementation = implementation + (', ' + technique if technique else '')
+
+    presentation = nlg_complex_multi(ex1['presentations'], ex2['presentations'],
+                                     "they show the explanation with the same output type: ", ontology_props['InformationContentEntity']).strip()
+    explanation = explanation + (', ' + presentation if presentation else '')
+    ai_methods = nlg_complex_multi(ex1['ai_methods'], ex2['ai_methods'],
+                                   "they are applicable to the same AI method type: ", ontology_props['AIMethod']).strip()
+    explanation = explanation + (', ' + ai_methods if ai_methods else '')
+    ai_tasks = nlg_complex_multi(ex1['ai_tasks'], ex2['ai_tasks'],
+                                 "and they are applicable to the same AI task type: ", ontology_props['AITask']).strip()
+    explanation = explanation + (', ' + ai_tasks if ai_tasks else '')
+    return explanation
 
 
-# def nlg_complex_multi(v1, v2, pretext, ontology):
-#     overlaps = set()
-#     for i in v1:
-#         for j in v2:
-#             if len(i) == len(j):
-#                 overlap = [i[-1]] if i[-1] == j[-1] else []
-#                 if overlap:
-#                     overlaps.add(overlap[-1])
-#             elif len(i) > len(j):
-#                 overlap = [j[-1]] if j[-1] in i else []
-#                 if overlap:
-#                     overlaps.add(overlap[-1])
-#     if overlaps:
-#         return pretext + ','.join([ontology[o] for o in overlaps])
-#     return ""
+def nlg_complex(v1, v2, pretext, ontology, isBackend=False):
+    overlap = [x for x in v1 if x in v2]
+    if overlap:
+        if isBackend == False:
+            return pretext + ontology[overlap[-1]]
+        else:
+            return pretext + ','.join([ontology[o] for o in overlap])
+    return ""
 
 
-# def filter_explainers_by_criteria(explainer_props, criteria):
-#     filtered = []
-#     for explainer in explainer_props:
-#         _match = True
-#         for c, c_prop in criteria.items():
-#             _match = _match and match_prop(c_prop, explainer[c])
-#         if _match:
-#             filtered.append(explainer)
-#     return filtered
+def nlg_complex_multi(v1, v2, pretext, ontology):
+    overlaps = set()
+    for i in v1:
+        for j in v2:
+            if len(i) == len(j):
+                overlap = [i[-1]] if i[-1] == j[-1] else []
+                if overlap:
+                    overlaps.add(overlap[-1])
+            elif len(i) > len(j):
+                overlap = [j[-1]] if j[-1] in i else []
+                if overlap:
+                    overlaps.add(overlap[-1])
+    if overlaps:
+        return pretext + ','.join([ontology[o] for o in overlaps])
+    return ""
 
 
-# def match_prop(criteria_prop, explainer_prop):
-#     if criteria_prop == [ANY_URI]:
-#         return True
-#     elif type(explainer_prop) is list:
-#         overlap = [x for x in criteria_prop if x in explainer_prop]
-#         if overlap:
-#             return True
-#         else:
-#             return False
-#     else:
-#         overlap = [x for x in criteria_prop if x == explainer_prop]
-#         if overlap:
-#             return True
-#         else:
-#             return False
+def filter_explainers_by_criteria(explainer_props, criteria):
+    filtered = []
+    for explainer in explainer_props:
+        _match = True
+        for c, c_prop in criteria.items():
+            _match = _match and match_prop(c_prop, explainer[c])
+        if _match:
+            filtered.append(explainer)
+    return filtered
+
+
+def match_prop(criteria_prop, explainer_prop):
+    if criteria_prop == [ANY_URI]:
+        return True
+    elif type(explainer_prop) is list:
+        overlap = [x for x in criteria_prop if x in explainer_prop]
+        if overlap:
+            return True
+        else:
+            return False
+    else:
+        overlap = [x for x in criteria_prop if x == explainer_prop]
+        if overlap:
+            return True
+        else:
+            return False
 
 
 def replace_explainer(data):
     if data is None:
         return {}
 
-    # ontology_support = data.get("ontology_props")
-    # query_case = data.get("query_case")
-    # explain = data.get("explain") == 'true'
-    # query_explainer = data.get("query_explainer")
-    # criteria = data.get("criteria")
-
-    # if ontology_support is None:
-    #     return {}
-
-    # explainer_props = ontology_support["explainer_props"]
-    # explainer_props_extended = ontology_support["explainer_props_extended"]
-    # similarities = ontology_support["similarities"]
-    # ontology_props = ontology_support["ontology_props"]
-
-    # applicabilities = applicability({
-    #     "query_case": query_case,
-    #     "explainer_props": explainer_props,
-    #     "ontology_props": None,
-    #     "explain": 'false'
-    # })
-
-    # similarities = similarities[query_explainer]
-    # query_explainer_props_extended = [
-    #     e for e in explainer_props_extended if e["name"] == query_explainer][0]
-    # explainer_props_filtered = [e for e in explainer_props if (
-    #     applicabilities[e["name"]]["flag"] and e["name"] != query_explainer)]
-    # if criteria:
-    #     explainer_props_filtered = filter_explainers_by_criteria(
-    #         explainer_props_filtered, criteria)
-    #     similarities = {k: s for k, s in similarities.items() if (
-    #         (k in [e["name"] for e in explainer_props_filtered]) and (k != query_explainer))}
-    # else:
-    #     explainer_props_filtered = explainer_props_filtered
-    #     similarities = {k: s for k, s in similarities.items()
-    #                     if k != query_explainer}
-
-    # explainers_props_extended_filtered = [e for e in explainer_props_extended if e["name"] in [
-    #     f["name"] for f in explainer_props_filtered]]
-    # nlg_result = nlg_batch(query_explainer_props_extended,
-    #                        explainers_props_extended_filtered, ontology_props) if explain else {}
-
-    # result = [{"explainer": e["name"],
-    #            "explanation":nlg_result[e["name"]] if e["name"] in nlg_result else "",
-    #            "similarity":similarities[e["name"]]
-    #            } for e in explainer_props_filtered]
-
-    # result_sorted = sorted(result, key=lambda x: x["similarity"], reverse=True)
-    # return result_sorted
-
-
-# def bt_sequence(tree, node, adj_node, seq):
-#     seq.append(node)
-#     if adj_node:
-#         for child in adj_node:
-#             bt_sequence(tree, tree["nodes"][child], tree["adj"][child], seq)
-
-
-# def edit_distance(q, c, delta):
-#     s1 = []
-#     bt_sequence(q, q["nodes"][0], q["adj"][0], s1)
-#     s2 = []
-#     bt_sequence(c, c["nodes"][0], c["adj"][0], s2)
-#     dist = sed.sed(s1, s2, delta)
-#     return dist
-
-
-# def semantic_delta(similarities, x, y):
-#     # df = getSimilarityTable()
-#     # print(df["/Images/Anchors"]["/Images/Counterfactuals"])
-
-#     if x == y:
-#         ret = 0.
-#     elif (x != None and y == None):  # inserting
-#         # print("inserting")
-#         ret = INSERTION_COST
-#     elif (x == None and y != None):  # deleting
-#         # print("deleting")
-#         ret = DELETION_COST
-#     elif (x == 'r' or y == 'r'):  # we assign an infinite cost when comparing a root node
-#         # print("root")
-#         ret = np.inf
-#     # if both nodes are either sequence or priority, assign null cost
-#     elif (x in ['Sequence', 'Priority'] and y in ['Sequence', 'Priority']):
-#         # print("sequence and priority")
-#         ret = 0.
-#     # if one of the nodes is a sequence or priority, the other won't because of the previous rule
-#     elif (x in ['Sequence', 'Priority'] or y in ['Sequence', 'Priority']):
-#         # print("sequence or priority")
-#         ret = np.inf
-#     elif x in similarities and y in similarities:  # If both nodes are explainers
-#         ret = 1-similarities[x][y]
-#     elif (x in similarities and y in similarities) or (x not in similarities and y in similarities):
-#         # If one node is explainer and the other one is a question
-#         ret = np.inf  # leave_change
-#     # here we have both question leaves
-#     elif typeQuestion(x) != "NO_QUESTION" and typeQuestion(y) != "NO_QUESTION":
-#         # Ike semantic similarity metric
-#         # if they are the same type
-#         if typeQuestion(x) == typeQuestion(y):
-#             ret = 0.75
-#         else:  # if they are not the same type
-#             ret = 0.5
-#     else:  # a node is not well analysed
-#         print("These nodes cannot be processed: " + x + " and " + y)
-#         return DEFAULT_COST
+    ontology_support = data.get("ontology_props")
+    query_case = data.get("query_case")
+    explain = data.get("explain") == 'true'
+    query_explainer = data.get("query_explainer")
+    criteria = data.get("criteria")
+
+    if ontology_support is None:
+        return {}
+
+    explainer_props = ontology_support["explainer_props"]
+    explainer_props_extended = ontology_support["explainer_props_extended"]
+    similarities = ontology_support["similarities"]
+    ontology_props = ontology_support["ontology_props"]
+
+    applicabilities = applicability({
+        "query_case": query_case,
+        "explainer_props": explainer_props,
+        "ontology_props": None,
+        "explain": 'false'
+    })
+
+    similarities = similarities[query_explainer]
+    query_explainer_props_extended = [
+        e for e in explainer_props_extended if e["name"] == query_explainer][0]
+    explainer_props_filtered = [e for e in explainer_props if (
+        applicabilities[e["name"]]["flag"] and e["name"] != query_explainer)]
+    if criteria:
+        explainer_props_filtered = filter_explainers_by_criteria(
+            explainer_props_filtered, criteria)
+        similarities = {k: s for k, s in similarities.items() if (
+            (k in [e["name"] for e in explainer_props_filtered]) and (k != query_explainer))}
+    else:
+        explainer_props_filtered = explainer_props_filtered
+        similarities = {k: s for k, s in similarities.items()
+                        if k != query_explainer}
+
+    explainers_props_extended_filtered = [e for e in explainer_props_extended if e["name"] in [
+        f["name"] for f in explainer_props_filtered]]
+    nlg_result = nlg_batch(query_explainer_props_extended,
+                           explainers_props_extended_filtered, ontology_props) if explain else {}
+
+    result = [{"explainer": e["name"],
+               "explanation":nlg_result[e["name"]] if e["name"] in nlg_result else "",
+               "similarity":similarities[e["name"]]
+               } for e in explainer_props_filtered]
+
+    result_sorted = sorted(result, key=lambda x: x["similarity"], reverse=True)
+    return result_sorted
+
+
+def bt_sequence(tree, node, adj_node, seq):
+    seq.append(node)
+    if adj_node:
+        for child in adj_node:
+            bt_sequence(tree, tree["nodes"][child], tree["adj"][child], seq)
+
+
+def edit_distance(q, c, delta):
+    s1 = []
+    bt_sequence(q, q["nodes"][0], q["adj"][0], s1)
+    s2 = []
+    bt_sequence(c, c["nodes"][0], c["adj"][0], s2)
+    dist = sed.sed(s1, s2, delta)
+    return dist
+
+
+def semantic_delta(similarities, x, y):
+    # df = getSimilarityTable()
+    # print(df["/Images/Anchors"]["/Images/Counterfactuals"])
+
+    if x == y:
+        ret = 0.
+    elif (x != None and y == None):  # inserting
+        # print("inserting")
+        ret = INSERTION_COST
+    elif (x == None and y != None):  # deleting
+        # print("deleting")
+        ret = DELETION_COST
+    elif (x == 'r' or y == 'r'):  # we assign an infinite cost when comparing a root node
+        # print("root")
+        ret = np.inf
+    # if both nodes are either sequence or priority, assign null cost
+    elif (x in ['Sequence', 'Priority'] and y in ['Sequence', 'Priority']):
+        # print("sequence and priority")
+        ret = 0.
+    # if one of the nodes is a sequence or priority, the other won't because of the previous rule
+    elif (x in ['Sequence', 'Priority'] or y in ['Sequence', 'Priority']):
+        # print("sequence or priority")
+        ret = np.inf
+    elif x in similarities and y in similarities:  # If both nodes are explainers
+        ret = 1-similarities[x][y]
+    elif (x in similarities and y in similarities) or (x not in similarities and y in similarities):
+        # If one node is explainer and the other one is a question
+        ret = np.inf  # leave_change
+    # here we have both question leaves
+    elif typeQuestion(x) != "NO_QUESTION" and typeQuestion(y) != "NO_QUESTION":
+        # Ike semantic similarity metric
+        # if they are the same type
+        if typeQuestion(x) == typeQuestion(y):
+            ret = 0.75
+        else:  # if they are not the same type
+            ret = 0.5
+    else:  # a node is not well analysed
+        print("These nodes cannot be processed: " + x + " and " + y)
+        return DEFAULT_COST
 
-#     # print('sem_delta: ',str(x)," , "+str(y)+ " = "+ str(ret) )
-#     return ret
+    # print('sem_delta: ',str(x)," , "+str(y)+ " = "+ str(ret) )
+    return ret
 
 
-# def typeQuestion(question):
-#     question_type = [key for key in INTENTS.keys() if question in INTENTS[key]]
-#     if question_type == []:
-#         print("Question (" + question + ") not found")
-#         return "NO_QUESTION"
-#     else:
-#         return question_type[0]
+def typeQuestion(question):
+    question_type = [key for key in INTENTS.keys() if question in INTENTS[key]]
+    if question_type == []:
+        print("Question (" + question + ") not found")
+        return "NO_QUESTION"
+    else:
+        return question_type[0]
 
 
-# def print_node_instances(node_id, nodes_dict, node_list, id_list):
-#     node = nodes_dict[node_id]
+def print_node_instances(node_id, nodes_dict, node_list, id_list):
+    node = nodes_dict[node_id]
 
-#     node_instance = node['Instance']
-#     if node_instance is None:
-#         return None
-#     elif node_instance == "User Question":
-#         node_instance = node["params"]["Question"]["value"]
-#         print(typeQuestion(node_instance))
-#     node_list.append(node_instance)
-#     id_list.append(node_id)
+    node_instance = node['Instance']
+    if node_instance is None:
+        return None
+    elif node_instance == "User Question":
+        node_instance = node["params"]["Question"]["value"]
+        print(typeQuestion(node_instance))
+    node_list.append(node_instance)
+    id_list.append(node_id)
 
-#     if 'firstChild' in node:
-#         first_child_id = node['firstChild']['Id']
-#         print_node_instances(first_child_id, nodes_dict, node_list, id_list)
-#         next_child = node['firstChild'].get('Next')
+    if 'firstChild' in node:
+        first_child_id = node['firstChild']['Id']
+        print_node_instances(first_child_id, nodes_dict, node_list, id_list)
+        next_child = node['firstChild'].get('Next')
 
-#         while next_child is not None:
-#             next_child_id = next_child['Id']
-#             print_node_instances(next_child_id, nodes_dict, node_list, id_list)
-#             next_child = next_child.get('Next')
+        while next_child is not None:
+            next_child_id = next_child['Id']
+            print_node_instances(next_child_id, nodes_dict, node_list, id_list)
+            next_child = next_child.get('Next')
 
-#     return node_list, id_list
+    return node_list, id_list
 
 
-# def get_index(node_id, nodes_dict, id_list):
-#     node = nodes_dict[node_id]
-#     node_instance = node.get('Instance')
-#     node_index = id_list.index(node_id)
-#     node_index = node_index + 1
-
-#     return node_index, node_instance
-
-
-# def find_parent(node_id, node, parent_child_dict, id_list, nodes_dict):
-#     parent_index, parent_instance = get_index(node_id, nodes_dict, id_list)
-
-#     if 'firstChild' in node:
-#         first_child_id = node['firstChild']['Id']
-#         child_index, child_instance = get_index(
-#             first_child_id, nodes_dict, id_list)
-
-#         if parent_index not in parent_child_dict:
-#             parent_child_dict[parent_index] = []
-#         if child_index not in parent_child_dict[parent_index]:
-#             parent_child_dict[parent_index].append(child_index)
-
-#         next_child = node['firstChild'].get('Next')
-#         while next_child is not None:
-#             next_child_id = next_child['Id']
-#             child_index, child_instance = get_index(
-#                 next_child_id, nodes_dict, id_list)
-#             if child_index not in parent_child_dict[parent_index]:
-#                 # Add child index to the parent's list
-#                 parent_child_dict[parent_index].append(child_index)
-#             next_child = next_child.get('Next')
-
-#         return parent_instance
-
-
-# def create_parent_child_dict(nodes_dict, node_list, id_list):
-#     parent_child_dict = {}
-#     # root = node_list[0] #r
-#     parent_child_dict[0] = [1]  # Add root node with index 0
-
-#     for i, (instance, node_id) in enumerate(zip(node_list[1:], id_list), start=1):
-#         node_index = i
-#         node_id = id_list[node_index-1]
-#         node = nodes_dict[node_id]
-#         find_parent(node_id, node, parent_child_dict, id_list, nodes_dict)
-
-#     return parent_child_dict
-
-
-# def build_adjacency_list(node_list, parent_child_dict):
-#     adjacency_list = [[] for _ in range(len(node_list))]
-
-#     for node_index, node_instance in enumerate(node_list):
-#         if node_index in parent_child_dict:
-#             children = parent_child_dict[node_index]
-#             adjacency_list[node_index] = children
-
-#     return adjacency_list
-
-
-# def convert_to_graph(cases):
-#     tree_dict, nodes_dict, parent_child_dict = {}, {}, {}
-#     node_list = ['r']  # Added 'r' as the default root node in the node list
-#     id_list = []  # List of node id's
-
-#     for idx, obj in enumerate(cases, start=1):
-#         trees = obj['data']['trees']
-
-#         # Get the 'nodes' from 'trees'
-#         for tree in trees:
-#             nodes = tree.get('nodes', {})
-#             nodes_dict.update(nodes)
-#             # Get the root node
-#             root_node_id = tree.get('root')
-
-#         # Call the recursive function to print node instances
-#         node_list, id_list = print_node_instances(
-#             root_node_id, nodes_dict, node_list=['r'], id_list=[])
-
-#         # Call the function to create the parent_child dictionary
-#         parent_child_dict = create_parent_child_dict(
-#             nodes_dict, node_list, id_list)
-
-#         # Build the adjacency list from the behavior tree
-#         adjacency_list = build_adjacency_list(node_list, parent_child_dict)
-
-#         tree_key = f'tree_{idx}'
-#         #   tree_dict[tree_key] = trees
-#         tree_dict[tree_key] = {
-#             'tree_json': trees,
-#             'tree_graph': {
-#                 'nodes': node_list,
-#                 'adj': adjacency_list
-#             }
-#         }
-
-#     return tree_dict
-
-
-# def check_applicability(bt_graph, applicabilities):
-#     """
-#        Check if the explainers in that bt in graph format are applicable to the use case
-#     """
-#     applicability = True
-#     my_nodes = bt_graph["nodes"]
-#     i = 0
-#     while applicability and i < len(my_nodes):
-#         node = my_nodes[i]
-#         if node[0] == '/':
-#             applicability = applicability and applicabilities[node]["flag"]
-#         i = i + 1
-#     return applicability
-
-
-# def filter_trees_by_criteria(matching_explainers, tree):
-#     """
-#         determine if the BT has explainers applicable and that satisfy the critiques
-#     """
-#     tree_match = False
-#     if 'tree_graph' in tree:
-#         graph = tree['tree_graph']
-#         if 'nodes' in graph:
-#             nodes = graph['nodes']
-#             common_explainers = list(set(nodes) & set(matching_explainers))
-#             if common_explainers != []:
-#                 tree_match = True
-
-#     return tree_match
-
-
-# def remove_root(_tree):
-#     """
-#         Function to remove the root in the most similar BT
-#     """
-
-#     # Create a deep copy of the most similar BT
-#     _tree_ = copy.deepcopy(_tree)
-
-#     # Remove the 'root' node and its connections from the JSON data
-#     # trees = most_similar_tree ['trees']
-#     # print(tree, '\n')
-
-#     for tree in _tree_:
-#         # Get the root node
-#         root_id = tree.get('root')
-#         # print(root_id)
-#         if tree['root'] == root_id:
-#             # Remove the 'root' node and its references
-#             del tree['nodes'][root_id]
-#             del tree['root']
-#             break  # Assuming there is only one tree with the specified root
-
-#     # Save the modified JSON data for Substitution
-#     # most_similar_subtree = most_similar_tree['data']['trees'][0]['nodes']
-#     most_similar_subtree = _tree_[0]['nodes']
-
-#     return most_similar_subtree
-
-
-# def search_and_remove(original_tree, target_id):
-#     modified_tree = copy.deepcopy(original_tree)
-#     nodes = modified_tree['trees'][0]['nodes']
-#     # Check if this node's ID matches the target_id
-#     target_node = nodes.get(target_id)
-#     if target_node["id"] == target_id:
-#         children_ids = extract_children_ids(target_node)
-#         # Remove the data by deleting the node with the target_id
-#         del nodes[target_id]
-#         for child_id in children_ids:
-#             modified_tree = search_and_remove(modified_tree, child_id)
-#     return modified_tree
-
-
-# # Function to extract the IDs of children and grandchildren from selected_subtree
-# def extract_children_ids(node):
-#     child_nodes = []
-#     # Check if the node has a "firstChild" key
-#     if "firstChild" in node:
-#         current_node = node["firstChild"]
-#         # Add the first child to the list
-#         child_nodes.append(node["firstChild"]['Id'])
-#         next_child = node['firstChild'].get('Next')
-#         while next_child is not None:
-#             child_nodes.append(next_child['Id'])
-#             next_child = next_child.get('Next')
-#     return child_nodes
-
-
-# # Find the parent
-# def get_parent_node(node_id, nodes):
-# #     node_dict = nodes.keys()
-#     for parent_node_id, node_data in nodes.items():
-# #         print('parent_node_id', parent_node_id)
-#         if "firstChild" in node_data and node_data["firstChild"]["Id"] == node_id:
-#             return parent_node_id
-#         if "Next" in node_data and node_data["Next"]["Id"] == node_id:
-#             return parent_node_id
-#     for parent_node_id, node_data in nodes.items():
-#         if "id" in node_data:
-#             parent = get_parent_node(node_id, node_data)
-#             if parent:
-#                 parent = node_data['id']
-#                 return parent
-#     return None
-
-# # Function to replace a node with a new node by ID
-# def substitute_node(node, target_id, new_node):
-#     if isinstance(node, dict):
-#         # Check if "Id" matches the target
-#         if "id" in node and node.get("id") == target_id:
-#             return new_node
-#         if "firstChild" in node:
-#             if node["firstChild"]["Id"] == target_id:
-#                 node["firstChild"]["Id"] = new_node
-#             else:
-#                 next_child = node['firstChild'].get('Next')
-#                 while next_child is not None:
-#                     if next_child["Id"] == target_id:
-#                         next_child["Id"]= new_node
-#                     else:
-#                         next_child = next_child.get('Next')
-#     return node
-
-
-# def get_modified_case(original_tree, selected_subtree, most_similar_subtree):
+def get_index(node_id, nodes_dict, id_list):
+    node = nodes_dict[node_id]
+    node_instance = node.get('Instance')
+    node_index = id_list.index(node_id)
+    node_index = node_index + 1
+
+    return node_index, node_instance
+
+
+def find_parent(node_id, node, parent_child_dict, id_list, nodes_dict):
+    parent_index, parent_instance = get_index(node_id, nodes_dict, id_list)
+
+    if 'firstChild' in node:
+        first_child_id = node['firstChild']['Id']
+        child_index, child_instance = get_index(
+            first_child_id, nodes_dict, id_list)
+
+        if parent_index not in parent_child_dict:
+            parent_child_dict[parent_index] = []
+        if child_index not in parent_child_dict[parent_index]:
+            parent_child_dict[parent_index].append(child_index)
+
+        next_child = node['firstChild'].get('Next')
+        while next_child is not None:
+            next_child_id = next_child['Id']
+            child_index, child_instance = get_index(
+                next_child_id, nodes_dict, id_list)
+            if child_index not in parent_child_dict[parent_index]:
+                # Add child index to the parent's list
+                parent_child_dict[parent_index].append(child_index)
+            next_child = next_child.get('Next')
+
+        return parent_instance
+
+
+def create_parent_child_dict(nodes_dict, node_list, id_list):
+    parent_child_dict = {}
+    # root = node_list[0] #r
+    parent_child_dict[0] = [1]  # Add root node with index 0
+
+    for i, (instance, node_id) in enumerate(zip(node_list[1:], id_list), start=1):
+        node_index = i
+        node_id = id_list[node_index-1]
+        node = nodes_dict[node_id]
+        find_parent(node_id, node, parent_child_dict, id_list, nodes_dict)
+
+    return parent_child_dict
+
+
+def build_adjacency_list(node_list, parent_child_dict):
+    adjacency_list = [[] for _ in range(len(node_list))]
+
+    for node_index, node_instance in enumerate(node_list):
+        if node_index in parent_child_dict:
+            children = parent_child_dict[node_index]
+            adjacency_list[node_index] = children
+
+    return adjacency_list
+
+
+def convert_to_graph(cases):
+    tree_dict, nodes_dict, parent_child_dict = {}, {}, {}
+    node_list = ['r']  # Added 'r' as the default root node in the node list
+    id_list = []  # List of node id's
+
+    for idx, obj in enumerate(cases, start=1):
+        trees = obj['data']['trees']
+
+        # Get the 'nodes' from 'trees'
+        for tree in trees:
+            nodes = tree.get('nodes', {})
+            nodes_dict.update(nodes)
+            # Get the root node
+            root_node_id = tree.get('root')
+
+        # Call the recursive function to print node instances
+        node_list, id_list = print_node_instances(
+            root_node_id, nodes_dict, node_list=['r'], id_list=[])
+
+        # Call the function to create the parent_child dictionary
+        parent_child_dict = create_parent_child_dict(
+            nodes_dict, node_list, id_list)
+
+        # Build the adjacency list from the behavior tree
+        adjacency_list = build_adjacency_list(node_list, parent_child_dict)
+
+        tree_key = f'tree_{idx}'
+        #   tree_dict[tree_key] = trees
+        tree_dict[tree_key] = {
+            'tree_json': trees,
+            'tree_graph': {
+                'nodes': node_list,
+                'adj': adjacency_list
+            }
+        }
+
+    return tree_dict
+
+
+def check_applicability(bt_graph, applicabilities):
+    """
+       Check if the explainers in that bt in graph format are applicable to the use case
+    """
+    applicability = True
+    my_nodes = bt_graph["nodes"]
+    i = 0
+    while applicability and i < len(my_nodes):
+        node = my_nodes[i]
+        if node[0] == '/':
+            applicability = applicability and applicabilities[node]["flag"]
+        i = i + 1
+    return applicability
+
+
+def filter_trees_by_criteria(matching_explainers, tree):
+    """
+        determine if the BT has explainers applicable and that satisfy the critiques
+    """
+    tree_match = False
+    if 'tree_graph' in tree:
+        graph = tree['tree_graph']
+        if 'nodes' in graph:
+            nodes = graph['nodes']
+            common_explainers = list(set(nodes) & set(matching_explainers))
+            if common_explainers != []:
+                tree_match = True
+
+    return tree_match
+
+
+def remove_root(_tree):
+    """
+        Function to remove the root in the most similar BT
+    """
+
+    # Create a deep copy of the most similar BT
+    _tree_ = copy.deepcopy(_tree)
+
+    # Remove the 'root' node and its connections from the JSON data
+    # trees = most_similar_tree ['trees']
+    # print(tree, '\n')
+
+    for tree in _tree_:
+        # Get the root node
+        root_id = tree.get('root')
+        # print(root_id)
+        if tree['root'] == root_id:
+            # Remove the 'root' node and its references
+            del tree['nodes'][root_id]
+            del tree['root']
+            break  # Assuming there is only one tree with the specified root
+
+    # Save the modified JSON data for Substitution
+    # most_similar_subtree = most_similar_tree['data']['trees'][0]['nodes']
+    most_similar_subtree = _tree_[0]['nodes']
+
+    return most_similar_subtree
+
+
+def search_and_remove(original_tree, target_id):
+    modified_tree = copy.deepcopy(original_tree)
+    nodes = modified_tree['trees'][0]['nodes']
+    # Check if this node's ID matches the target_id
+    target_node = nodes.get(target_id)
+    if target_node["id"] == target_id:
+        children_ids = extract_children_ids(target_node)
+        # Remove the data by deleting the node with the target_id
+        del nodes[target_id]
+        for child_id in children_ids:
+            modified_tree = search_and_remove(modified_tree, child_id)
+    return modified_tree
+
+
+# Function to extract the IDs of children and grandchildren from selected_subtree
+def extract_children_ids(node):
+    child_nodes = []
+    # Check if the node has a "firstChild" key
+    if "firstChild" in node:
+        current_node = node["firstChild"]
+        # Add the first child to the list
+        child_nodes.append(node["firstChild"]['Id'])
+        next_child = node['firstChild'].get('Next')
+        while next_child is not None:
+            child_nodes.append(next_child['Id'])
+            next_child = next_child.get('Next')
+    return child_nodes
+
+
+# Find the parent
+def get_parent_node(node_id, nodes):
+#     node_dict = nodes.keys()
+    for parent_node_id, node_data in nodes.items():
+#         print('parent_node_id', parent_node_id)
+        if "firstChild" in node_data and node_data["firstChild"]["Id"] == node_id:
+            return parent_node_id
+        if "Next" in node_data and node_data["Next"]["Id"] == node_id:
+            return parent_node_id
+    for parent_node_id, node_data in nodes.items():
+        if "id" in node_data:
+            parent = get_parent_node(node_id, node_data)
+            if parent:
+                parent = node_data['id']
+                return parent
+    return None
+
+# Function to replace a node with a new node by ID
+def substitute_node(node, target_id, new_node):
+    if isinstance(node, dict):
+        # Check if "Id" matches the target
+        if "id" in node and node.get("id") == target_id:
+            return new_node
+        if "firstChild" in node:
+            if node["firstChild"]["Id"] == target_id:
+                node["firstChild"]["Id"] = new_node
+            else:
+                next_child = node['firstChild'].get('Next')
+                while next_child is not None:
+                    if next_child["Id"] == target_id:
+                        next_child["Id"]= new_node
+                    else:
+                        next_child = next_child.get('Next')
+    return node
+
+
+def get_modified_case(original_tree, selected_subtree, most_similar_subtree):
     
-#     """
-#         original_tree is the original tree where we need to remove the subtree. It is in json format
-#         selected_subtree should be the id of the node selected by the user
-#         most_similar_subtree is the tree to replace the old sub BT that the user wants to remove
-#     """
+    """
+        original_tree is the original tree where we need to remove the subtree. It is in json format
+        selected_subtree should be the id of the node selected by the user
+        most_similar_subtree is the tree to replace the old sub BT that the user wants to remove
+    """
     
-#     # Remove the selected_composite_node, their children and grandchildren from original_case
-#     selected_composite_node = selected_subtree[0]['data']['trees'][0]['root']
-#     modified_tree = search_and_remove(original_tree[0]['data'], selected_composite_node)
-#     # so here, we have the tree without the tree
+    # Remove the selected_composite_node, their children and grandchildren from original_case
+    selected_composite_node = selected_subtree[0]['data']['trees'][0]['root']
+    modified_tree = search_and_remove(original_tree[0]['data'], selected_composite_node)
+    # so here, we have the tree without the tree
     
-#     # Find the similar composite node id
-#     similar_composite_node = next(iter(most_similar_subtree.keys()))
-#     # print('\nsimilar_composite_node:',similar_composite_node)
+    # Find the similar composite node id
+    similar_composite_node = next(iter(most_similar_subtree.keys()))
+    # print('\nsimilar_composite_node:',similar_composite_node)
 
-#     # Find the parent of the selected_composite_node
-#     parent = get_parent_node(selected_composite_node, modified_tree['trees'][0]['nodes'])
-#     # print("\nParent ID:", parent)
-#     # parent_node = fetch_node_details(modified_tree['trees'][0]['nodes'], parent)
-#     parent_node = modified_tree['trees'][0]['nodes'][parent]
+    # Find the parent of the selected_composite_node
+    parent = get_parent_node(selected_composite_node, modified_tree['trees'][0]['nodes'])
+    # print("\nParent ID:", parent)
+    # parent_node = fetch_node_details(modified_tree['trees'][0]['nodes'], parent)
+    parent_node = modified_tree['trees'][0]['nodes'][parent]
     
-#     # child_ids = extract_children_ids(parent_node)
-#     # print('child_ids:', child_ids)
+    # child_ids = extract_children_ids(parent_node)
+    # print('child_ids:', child_ids)
     
-#     # # Substitute the target node with the new JSON structure
-#     # Substitute selected_composite_node with similar_composite_node
-#     updated_parent_node = substitute_node(parent_node, selected_composite_node, similar_composite_node)
-# #     print('\nupdated_parent_node', updated_parent_node)
-# #     print('\nmodified_tree:', modified_tree)
+    # # Substitute the target node with the new JSON structure
+    # Substitute selected_composite_node with similar_composite_node
+    updated_parent_node = substitute_node(parent_node, selected_composite_node, similar_composite_node)
+#     print('\nupdated_parent_node', updated_parent_node)
+#     print('\nmodified_tree:', modified_tree)
     
-#     # # Add the most_similar_subtree to the modified tree
-#     modified_tree['trees'][0]['nodes'].update(most_similar_subtree)
-#     #print('\nFinal tree:', modified_tree)
+    # # Add the most_similar_subtree to the modified tree
+    modified_tree['trees'][0]['nodes'].update(most_similar_subtree)
+    #print('\nFinal tree:', modified_tree)
 
-#     modified_tree_final = copy.deepcopy(original_tree)
-#     modified_tree_final[0]['data'] = modified_tree
+    modified_tree_final = copy.deepcopy(original_tree)
+    modified_tree_final[0]['data'] = modified_tree
     
-# #     print("my_modified_tree")
-# #     print(modified_tree_final)
+#     print("my_modified_tree")
+#     print(modified_tree_final)
     
-#     return modified_tree
+    return modified_tree
 
 
 def replace_subtree(data):
     if data is None:
         return {}
 
-    # ontology_support = data.get("ontology_props")
-    # query_case = data.get("query_case")
-    # explain = data.get("explain") == 'true'
-    # query_subtree = data.get("query_subtree")
-    # query_tree = data.get("query_tree")
-    # neighbours = data.get("neighbours")
-    # criteria = data.get("criteria")
+    ontology_support = data.get("ontology_props")
+    query_case = data.get("query_case")
+    explain = data.get("explain") == 'true'
+    query_subtree = data.get("query_subtree")
+    query_tree = data.get("query_tree")
+    neighbours = data.get("neighbours")
+    criteria = data.get("criteria")
 
-    # if ontology_support is None:
-    #     return {}
+    if ontology_support is None:
+        return {}
 
-    # explainer_props = ontology_support["explainer_props"]
-    # explainer_props_extended = ontology_support["explainer_props_extended"]
-    # similarities = ontology_support["similarities"]
-    # ontology_props = ontology_support["ontology_props"]
+    explainer_props = ontology_support["explainer_props"]
+    explainer_props_extended = ontology_support["explainer_props_extended"]
+    similarities = ontology_support["similarities"]
+    ontology_props = ontology_support["ontology_props"]
 
-    # usecase_context = get_usecase_context(query_case)
-    # applicabilities = explainers_applicability(
-    #     usecase_context, explainer_props, ontology_props, False)
+    usecase_context = get_usecase_context(query_case)
+    applicabilities = explainers_applicability(
+        usecase_context, explainer_props, ontology_props, False)
 
-    # # getting the graph format of the solutions (trees)
-    # tree_dict = convert_to_graph(neighbours)
+    # getting the graph format of the solutions (trees)
+    tree_dict = convert_to_graph(neighbours)
 
-    # # here we are checking that the similar BT is applicable
-    # tree_dict_filtered = dict()
-    # for key, tree in tree_dict.items():
-    #     # We check if the tree is applicable in this use case
-    #     if check_applicability(tree['tree_graph'], applicabilities):
-    #         # is the user has included critiques
-    #         if criteria:
-    #             # we obtain the explainers in the library that satisfies the critiques
-    #             explainers_filtered = filter_explainers_by_criteria(
-    #                 explainer_props, criteria)
-    #             # here we check if the BT has explainers that satisfy the critiques
-    #             # we dont need to check if the explainers obtained from the critiques are applicable
-    #             # because the tree is already applicable (then only the BTs with explainers applicable are retrieved)
-    #             if filter_trees_by_criteria(explainers_filtered, tree):
-    #                 tree_dict_filtered[key] = tree
-    #         else:
-    #             tree_dict_filtered[key] = tree
+    # here we are checking that the similar BT is applicable
+    tree_dict_filtered = dict()
+    for key, tree in tree_dict.items():
+        # We check if the tree is applicable in this use case
+        if check_applicability(tree['tree_graph'], applicabilities):
+            # is the user has included critiques
+            if criteria:
+                # we obtain the explainers in the library that satisfies the critiques
+                explainers_filtered = filter_explainers_by_criteria(
+                    explainer_props, criteria)
+                # here we check if the BT has explainers that satisfy the critiques
+                # we dont need to check if the explainers obtained from the critiques are applicable
+                # because the tree is already applicable (then only the BTs with explainers applicable are retrieved)
+                if filter_trees_by_criteria(explainers_filtered, tree):
+                    tree_dict_filtered[key] = tree
+            else:
+                tree_dict_filtered[key] = tree
 
-    # # trick to make the translation properly
-    # _query_subtree = [query_subtree]
-    # _query_subtree = convert_to_graph(_query_subtree)['tree_1']['tree_graph']
+    # trick to make the translation properly
+    _query_subtree = [query_subtree]
+    _query_subtree = convert_to_graph(_query_subtree)['tree_1']['tree_graph']
 
-    # # for every BT in the case base:
-    # #   compare the query with that BT (taking into account that the query is not the same to the case)
-    # solution = {}
-    # for bt in tree_dict:
-    #     tree_case = tree_dict[bt]['tree_graph']
-    #     # here we make sure that the subtree is not the same that we are going to use for replacement
-    #     if _query_subtree != tree_case:  # does this work?
-    #         solution[bt] = edit_distance(
-    #             _query_subtree, tree_case, semantic_delta)
+    # for every BT in the case base:
+    #   compare the query with that BT (taking into account that the query is not the same to the case)
+    solution = {}
+    for bt in tree_dict:
+        tree_case = tree_dict[bt]['tree_graph']
+        # here we make sure that the subtree is not the same that we are going to use for replacement
+        if _query_subtree != tree_case:  # does this work?
+            solution[bt] = edit_distance(
+                _query_subtree, tree_case, semantic_delta)
 
-    # # Sort solution to get the BT with the lowest edit distance
-    # sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
+    # Sort solution to get the BT with the lowest edit distance
+    sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
 
-    # my_solutions = list()
-    # for key in sorted_BTs:
-    #     # getting the most similar one and the graph format of that BT
-    #     solution_graph_format = sorted_BTs[key][0]
-    #     # From the structure above, we have to get the json format for that solution (if there is root, we have to remove the root)
-    #     solution_json = tree_dict[solution_graph_format]['tree_json']
-    #     # remove the root node from the most similar BT
-    #     solution_no_root = remove_root(solution_json)
-    #     modified_tree = get_modified_case(
-    #         query_tree, query_subtree, solution_no_root)
-    #     my_solutions.append(modified_tree)
+    my_solutions = list()
+    for key in sorted_BTs:
+        # getting the most similar one and the graph format of that BT
+        solution_graph_format = sorted_BTs[key][0]
+        # From the structure above, we have to get the json format for that solution (if there is root, we have to remove the root)
+        solution_json = tree_dict[solution_graph_format]['tree_json']
+        # remove the root node from the most similar BT
+        solution_no_root = remove_root(solution_json)
+        modified_tree = get_modified_case(
+            query_tree, query_subtree, solution_no_root)
+        my_solutions.append(modified_tree)
 
-    # return my_solutions
+    return my_solutions
 
 
 def substitute(data):
