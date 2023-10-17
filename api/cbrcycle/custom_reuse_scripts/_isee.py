@@ -420,6 +420,7 @@ DELETION_COST = 1.
 LEAVE_CHANGE = 1.
 DEFAULT_COST = 100
 
+similarities = None
 
 def get_usecase_context(usecase):
     context = {}
@@ -710,7 +711,7 @@ def edit_distance(q, c, delta):
     return dist
 
 
-def semantic_delta(similarities, x, y):
+def semantic_delta(x, y):
     # df = getSimilarityTable()
     # print(df["/Images/Anchors"]["/Images/Counterfactuals"])
 
