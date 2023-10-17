@@ -1060,6 +1060,30 @@ def get_modified_case(original_tree, selected_subtree, most_similar_subtree):
 
     return modified_tree
 
+def filter_nodes(node, nodes, result):
+    result[node["id"]] = node
+    if "firstChild" in node:
+        children = node["firstChild"]
+        result[children["Id"]] = nodes[children["Id"]]
+        if "Next" in children:
+            filter_nodes(nodes[children["Next"]["Id"]], nodes, result)
+        return 
+    return
+
+def find_subtree(_tree, _node_id):
+    parent_tree = copy.deepcopy(_tree)
+    for tree in parent_tree["trees"]:
+        nodes = tree.get('nodes', {})
+
+        selected_node = [n for k,n in nodes.items() if k == _node_id]
+        if selected_node:
+            result = {}
+            filter_nodes(selected_node[0], nodes, result)
+            tree['nodes'] = result
+            tree['root'] = selected_node[0]["id"]
+        else:
+            continue   
+    return {"data":parent_tree}
 
 def replace_subtree(data):
     if data is None:
@@ -1068,7 +1092,7 @@ def replace_subtree(data):
     ontology_support = data.get("ontology_props")
     query_case = data.get("query_case")
     explain = data.get("explain") == 'true'
-    query_subtree = data.get("query_subtree")
+    query_subtree_id = data.get("query_subtree_id")
     query_tree = data.get("query_tree")
     neighbours = data.get("neighbours")
     criteria = data.get("criteria")
@@ -1107,8 +1131,8 @@ def replace_subtree(data):
                 tree_dict_filtered[key] = tree
     print("step 5")
     # trick to make the translation properly
-    _query_subtree = [query_subtree]
-    _query_subtree = convert_to_graph(_query_subtree)['tree_1']['tree_graph']
+    query_subtree = [find_subtree(query_tree, query_subtree_id)]
+    query_subtree_graph = convert_to_graph(query_subtree)['tree_1']['tree_graph']
     print("step 6")
     # for every BT in the case base:
     #   compare the query with that BT (taking into account that the query is not the same to the case)
@@ -1116,9 +1140,9 @@ def replace_subtree(data):
     for bt in tree_dict:
         tree_case = tree_dict[bt]['tree_graph']
         # here we make sure that the subtree is not the same that we are going to use for replacement
-        if _query_subtree != tree_case:  # does this work?
+        if query_subtree_graph != tree_case:  # does this work?
             solution[bt] = edit_distance(
-                _query_subtree, tree_case, semantic_delta)
+                query_subtree_graph, tree_case, semantic_delta)
     print("step 7")
     # Sort solution to get the BT with the lowest edit distance
     sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
@@ -1147,9 +1171,6 @@ def substitute(data):
 
     if ontology_support is None or query_case is None:
         return {}
-    print(type(data))
-    print(data.get("query_explainer"))
-    print(data.get("query_subtree"))
 
     if data.get("query_explainer"):
         return replace_explainer(data)
