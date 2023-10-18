@@ -420,7 +420,7 @@ DELETION_COST = 1.
 LEAVE_CHANGE = 1.
 DEFAULT_COST = 100
 
-similarities = None
+SIMILARITIES = None
 
 def get_usecase_context(usecase):
     context = {}
@@ -734,9 +734,9 @@ def semantic_delta(x, y):
     elif (x in ['Sequence', 'Priority'] or y in ['Sequence', 'Priority']):
         # print("sequence or priority")
         ret = np.inf
-    elif x in similarities and y in similarities:  # If both nodes are explainers
-        ret = 1-similarities[x][y]
-    elif (x in similarities and y in similarities) or (x not in similarities and y in similarities):
+    elif x in SIMILARITIES and y in SIMILARITIES:  # If both nodes are explainers
+        ret = 1-SIMILARITIES[x][y]
+    elif (x in SIMILARITIES and y in SIMILARITIES) or (x not in SIMILARITIES and y in SIMILARITIES):
         # If one node is explainer and the other one is a question
         ret = np.inf  # leave_change
     # here we have both question leaves
@@ -1103,7 +1103,7 @@ def replace_subtree(data):
 
     explainer_props = ontology_support["explainer_props"]
     explainer_props_extended = ontology_support["explainer_props_extended"]
-    similarities = ontology_support["similarities"]
+    SIMILARITIES = ontology_support["similarities"]
     ontology_props = ontology_support["ontology_props"]
     print("step 2")
     usecase_context = get_usecase_context(query_case)
