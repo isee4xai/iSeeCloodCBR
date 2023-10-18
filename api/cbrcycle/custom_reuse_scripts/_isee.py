@@ -420,8 +420,6 @@ DELETION_COST = 1.
 LEAVE_CHANGE = 1.
 DEFAULT_COST = 100
 
-SIMILARITIES = None
-
 def get_usecase_context(usecase):
     context = {}
     context["ai_task"] = usecase["settings"]["ai_task"]
@@ -710,49 +708,50 @@ def edit_distance(q, c, delta):
     dist = sed.sed(s1, s2, delta)
     return dist
 
+def semantic_delta_parent(sims):
+    def semantic_delta(x, y):
+        # df = getSimilarityTable()
+        # print(df["/Images/Anchors"]["/Images/Counterfactuals"])
 
-def semantic_delta(x, y):
-    # df = getSimilarityTable()
-    # print(df["/Images/Anchors"]["/Images/Counterfactuals"])
+        if x == y:
+            ret = 0.
+        elif (x != None and y == None):  # inserting
+            # print("inserting")
+            ret = INSERTION_COST
+        elif (x == None and y != None):  # deleting
+            # print("deleting")
+            ret = DELETION_COST
+        elif (x == 'r' or y == 'r'):  # we assign an infinite cost when comparing a root node
+            # print("root")
+            ret = np.inf
+        # if both nodes are either sequence or priority, assign null cost
+        elif (x in ['Sequence', 'Priority'] and y in ['Sequence', 'Priority']):
+            # print("sequence and priority")
+            ret = 0.
+        # if one of the nodes is a sequence or priority, the other won't because of the previous rule
+        elif (x in ['Sequence', 'Priority'] or y in ['Sequence', 'Priority']):
+            # print("sequence or priority")
+            ret = np.inf
+        elif x in sims and y in sims:  # If both nodes are explainers
+            ret = 1-sims[x][y]
+        elif (x in sims and y in sims) or (x not in sims and y in sims):
+            # If one node is explainer and the other one is a question
+            ret = np.inf  # leave_change
+        # here we have both question leaves
+        elif typeQuestion(x) != "NO_QUESTION" and typeQuestion(y) != "NO_QUESTION":
+            # Ike semantic similarity metric
+            # if they are the same type
+            if typeQuestion(x) == typeQuestion(y):
+                ret = 0.75
+            else:  # if they are not the same type
+                ret = 0.5
+        else:  # a node is not well analysed
+            print("These nodes cannot be processed: " + x + " and " + y)
+            return DEFAULT_COST
 
-    if x == y:
-        ret = 0.
-    elif (x != None and y == None):  # inserting
-        # print("inserting")
-        ret = INSERTION_COST
-    elif (x == None and y != None):  # deleting
-        # print("deleting")
-        ret = DELETION_COST
-    elif (x == 'r' or y == 'r'):  # we assign an infinite cost when comparing a root node
-        # print("root")
-        ret = np.inf
-    # if both nodes are either sequence or priority, assign null cost
-    elif (x in ['Sequence', 'Priority'] and y in ['Sequence', 'Priority']):
-        # print("sequence and priority")
-        ret = 0.
-    # if one of the nodes is a sequence or priority, the other won't because of the previous rule
-    elif (x in ['Sequence', 'Priority'] or y in ['Sequence', 'Priority']):
-        # print("sequence or priority")
-        ret = np.inf
-    elif x in SIMILARITIES and y in SIMILARITIES:  # If both nodes are explainers
-        ret = 1-SIMILARITIES[x][y]
-    elif (x in SIMILARITIES and y in SIMILARITIES) or (x not in SIMILARITIES and y in SIMILARITIES):
-        # If one node is explainer and the other one is a question
-        ret = np.inf  # leave_change
-    # here we have both question leaves
-    elif typeQuestion(x) != "NO_QUESTION" and typeQuestion(y) != "NO_QUESTION":
-        # Ike semantic similarity metric
-        # if they are the same type
-        if typeQuestion(x) == typeQuestion(y):
-            ret = 0.75
-        else:  # if they are not the same type
-            ret = 0.5
-    else:  # a node is not well analysed
-        print("These nodes cannot be processed: " + x + " and " + y)
-        return DEFAULT_COST
-
-    # print('sem_delta: ',str(x)," , "+str(y)+ " = "+ str(ret) )
-    return ret
+        # print('sem_delta: ',str(x)," , "+str(y)+ " = "+ str(ret) )
+        return ret
+    return semantic_delta
 
 
 def typeQuestion(question):
@@ -1103,7 +1102,7 @@ def replace_subtree(data):
 
     explainer_props = ontology_support["explainer_props"]
     explainer_props_extended = ontology_support["explainer_props_extended"]
-    SIMILARITIES = ontology_support["similarities"]
+    similarities = ontology_support["similarities"]
     ontology_props = ontology_support["ontology_props"]
     print("step 2")
     usecase_context = get_usecase_context(query_case)
@@ -1143,7 +1142,7 @@ def replace_subtree(data):
         # here we make sure that the subtree is not the same that we are going to use for replacement
         if query_subtree_graph != tree_case:  # does this work?
             solution[bt] = edit_distance(
-                query_subtree_graph, tree_case, semantic_delta)
+                query_subtree_graph, tree_case, semantic_delta_parent(similarities))
     print("step 7")
     # Sort solution to get the BT with the lowest edit distance
     sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
