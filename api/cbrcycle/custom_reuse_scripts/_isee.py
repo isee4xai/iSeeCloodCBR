@@ -415,10 +415,14 @@ INTENTS = {
     "ACTIONABILITY": ["What are the alternative scenarios available?", "What type of instances would get a different outcome?", "How can I change feature X to get the same outcome?", "How to get a different outcome?", "How to change the instance to get a different outcome?", "Why does the AI system have given outcome A not B?", "Which features need changed to get a different outcome?"]
 }
 
+COMPOSITE_NODES = ['Sequence', 'Priority', 'Supplement',
+                   'Replacement', 'Variant', 'Complement']
+
 INSERTION_COST = 1.
 DELETION_COST = 1.
 LEAVE_CHANGE = 1.
 DEFAULT_COST = 100
+
 
 def get_usecase_context(usecase):
     context = {}
@@ -540,7 +544,6 @@ def nlg_batch(query, others, ontology_props):
 def nlg(ex1, ex2, ontology_props):
     explanation = ""
 
-    # explanation about why they are similar
     explanation = "Explainers are similar because "
     if ex1['dataset_type'] == ex2['dataset_type']:
         explanation = explanation + "they can be applied to the same dataset type: " + \
@@ -561,8 +564,6 @@ def nlg(ex1, ex2, ontology_props):
         explanation = explanation + ', ' + "they have the same computational complexity: " + \
             ontology_props["ComputationalComplexity"][ex1['computational_complexity']]
 
-    # for the complex ones, if they share one in the array, show
-    # if they share more than one, show the most deep (the one in the beginning of the array)
     technique = nlg_complex(ex1['technique'], ex2['technique'],
                             "they are the same explainability technique type: ", ontology_props['ExplainabilityTechnique']).strip()
     explanation = explanation + (', ' + technique if technique else '')
@@ -644,7 +645,7 @@ def match_prop(criteria_prop, explainer_prop):
 def replace_explainer(data):
     if data is None:
         return {}
-    
+
     ontology_support = data.get("ontology_props")
     query_case = data.get("query_case")
     explain = data.get("explain") == 'true'
@@ -708,61 +709,45 @@ def edit_distance(q, c, delta):
     dist = sed.sed(s1, s2, delta)
     return dist
 
+
 def semantic_delta_parent(sims):
     def semantic_delta(x, y):
-        # df = getSimilarityTable()
-        # print(df["/Images/Anchors"]["/Images/Counterfactuals"])
-        composite_nodes = ['Sequence','Priority', 'Supplement', 'Replacement', 'Variant', 'Complement']
+
         if x == '/Images/GradCamTorch':
             x = '/Images/GradCam'
         if y == '/Images/GradCamTorch':
             y = '/Images/GradCam'
-                
-        if x == y:
-            ret = 0.
-        elif (x != None and y == None):  # inserting
-            # print("inserting")
-            ret = INSERTION_COST
-        elif (x == None and y != None):  # deleting
-            # print("deleting")
-            ret = DELETION_COST
-        elif (x == 'r' or y == 'r'):  # we assign an infinite cost when comparing a root node
-            # print("root")
-            ret = np.inf
-        # if both nodes are either sequence or priority, assign null cost
-        elif (x in composite_nodes and y in composite_nodes):
-            # print("sequence and priority")
-            ret = 0.
-        # if one of the nodes is a sequence or priority, the other won't because of the previous rule
-        elif (x in composite_nodes or y in composite_nodes):
-            # print("sequence or priority")
-            ret = np.inf
-        elif x in sims and y in sims:  # If both nodes are explainers
-            ret = 1-sims[x][y]
-        elif (x in sims and y in sims) or (x not in sims and y in sims):
-            # If one node is explainer and the other one is a question
-            ret = np.inf  # leave_change
-        # here we have both question leaves
-        elif typeQuestion(x) != "NO_QUESTION" and typeQuestion(y) != "NO_QUESTION":
-            # Ike semantic similarity metric
-            # if they are the same type
-            if typeQuestion(x) == typeQuestion(y):
-                ret = 0.75
-            else:  # if they are not the same type
-                ret = 0.5
-        else:  # a node is not well analysed
-            print("These nodes cannot be processed: " + x + " and " + y)
-            return DEFAULT_COST
 
-        # print('sem_delta: ',str(x)," , "+str(y)+ " = "+ str(ret) )
-        return ret
+        if x == y:
+            _dist = 0.
+        elif (x != None and y == None):
+            _dist = INSERTION_COST
+        elif (x == None and y != None):
+            _dist = DELETION_COST
+        elif (x == 'r' or y == 'r'):
+            _dist = np.inf
+        elif (x in COMPOSITE_NODES and y in COMPOSITE_NODES):
+            _dist = 0.
+        elif (x in COMPOSITE_NODES or y in COMPOSITE_NODES):
+            _dist = np.inf
+        elif x in sims and y in sims:
+            _dist = 1-sims[x][y]
+        elif (x in sims and y in sims) or (x not in sims and y in sims):
+            _dist = np.inf
+        elif typeQuestion(x) != "NO_QUESTION" and typeQuestion(y) != "NO_QUESTION":
+            if typeQuestion(x) == typeQuestion(y):
+                _dist = 0.75
+            else:
+                _dist = 0.5
+        else:
+            return DEFAULT_COST
+        return _dist
     return semantic_delta
 
 
 def typeQuestion(question):
     question_type = [key for key in INTENTS.keys() if question in INTENTS[key]]
     if question_type == []:
-        print("Question (" + question + ") not found")
         return "NO_QUESTION"
     else:
         return question_type[0]
@@ -776,7 +761,6 @@ def print_node_instances(node_id, nodes_dict, node_list, id_list):
         return None
     elif node_instance == "User Question":
         node_instance = node["params"]["Question"]["value"]
-        print(typeQuestion(node_instance))
     node_list.append(node_instance)
     id_list.append(node_id)
 
@@ -830,8 +814,7 @@ def find_parent(node_id, node, parent_child_dict, id_list, nodes_dict):
 
 def create_parent_child_dict(nodes_dict, node_list, id_list):
     parent_child_dict = {}
-    # root = node_list[0] #r
-    parent_child_dict[0] = [1]  # Add root node with index 0
+    parent_child_dict[0] = [1]
 
     for i, (instance, node_id) in enumerate(zip(node_list[1:], id_list), start=1):
         node_index = i
@@ -861,11 +844,9 @@ def convert_to_graph(cases):
     for idx, obj in enumerate(cases, start=1):
         trees = obj['data']['trees']
 
-        # Get the 'nodes' from 'trees'
         for tree in trees:
             nodes = tree.get('nodes', {})
             nodes_dict.update(nodes)
-            # Get the root node
             root_node_id = tree.get('root')
 
         # Call the recursive function to print node instances
@@ -880,7 +861,6 @@ def convert_to_graph(cases):
         adjacency_list = build_adjacency_list(node_list, parent_child_dict)
 
         tree_key = f'tree_{idx}'
-        #   tree_dict[tree_key] = trees
         tree_dict[tree_key] = {
             'tree_json': trees,
             'tree_graph': {
@@ -893,9 +873,6 @@ def convert_to_graph(cases):
 
 
 def check_applicability(bt_graph, applicabilities):
-    """
-       Check if the explainers in that bt in graph format are applicable to the use case
-    """
     applicability = True
     my_nodes = bt_graph["nodes"]
     i = 0
@@ -910,9 +887,6 @@ def check_applicability(bt_graph, applicabilities):
 
 
 def filter_trees_by_criteria(matching_explainers, tree):
-    """
-        determine if the BT has explainers applicable and that satisfy the critiques
-    """
     tree_match = False
     if 'tree_graph' in tree:
         graph = tree['tree_graph']
@@ -926,55 +900,35 @@ def filter_trees_by_criteria(matching_explainers, tree):
 
 
 def remove_root(_tree):
-    """
-        Function to remove the root in the most similar BT
-    """
-
-    # Create a deep copy of the most similar BT
     _tree_ = copy.deepcopy(_tree)
 
-    # Remove the 'root' node and its connections from the JSON data
-    # trees = most_similar_tree ['trees']
-    # print(tree, '\n')
-
     for tree in _tree_:
-        # Get the root node
         root_id = tree.get('root')
-        # print(root_id)
+
         if tree['root'] == root_id:
-            # Remove the 'root' node and its references
             del tree['nodes'][root_id]
             del tree['root']
             break  # Assuming there is only one tree with the specified root
 
-    # Save the modified JSON data for Substitution
-    # most_similar_subtree = most_similar_tree['data']['trees'][0]['nodes']
     most_similar_subtree = _tree_[0]['nodes']
-
     return most_similar_subtree
 
 
 def search_and_remove(original_tree, target_id):
     modified_tree = copy.deepcopy(original_tree)
     nodes = modified_tree['trees'][0]['nodes']
-    # Check if this node's ID matches the target_id
     target_node = nodes.get(target_id)
     if target_node["id"] == target_id:
         children_ids = extract_children_ids(target_node)
-        # Remove the data by deleting the node with the target_id
         del nodes[target_id]
         for child_id in children_ids:
             modified_tree = search_and_remove(modified_tree, child_id)
     return modified_tree
 
 
-# Function to extract the IDs of children and grandchildren from selected_subtree
 def extract_children_ids(node):
     child_nodes = []
-    # Check if the node has a "firstChild" key
     if "firstChild" in node:
-        current_node = node["firstChild"]
-        # Add the first child to the list
         child_nodes.append(node["firstChild"]['Id'])
         next_child = node['firstChild'].get('Next')
         while next_child is not None:
@@ -983,11 +937,8 @@ def extract_children_ids(node):
     return child_nodes
 
 
-# Find the parent
 def get_parent_node(node_id, nodes):
-    #     node_dict = nodes.keys()
     for parent_node_id, node_data in nodes.items():
-        #         print('parent_node_id', parent_node_id)
         if "firstChild" in node_data and node_data["firstChild"]["Id"] == node_id:
             return parent_node_id
         if "Next" in node_data and node_data["Next"]["Id"] == node_id:
@@ -1000,12 +951,9 @@ def get_parent_node(node_id, nodes):
                 return parent
     return None
 
-# Function to replace a node with a new node by ID
-
 
 def substitute_node(node, target_id, new_node):
     if isinstance(node, dict):
-        # Check if "Id" matches the target
         if "id" in node and node.get("id") == target_id:
             return new_node
         if "firstChild" in node:
@@ -1022,50 +970,22 @@ def substitute_node(node, target_id, new_node):
 
 
 def get_modified_case(original_tree, selected_subtree, most_similar_subtree):
-    """
-        original_tree is the original tree where we need to remove the subtree. It is in json format
-        selected_subtree should be the id of the node selected by the user
-        most_similar_subtree is the tree to replace the old sub BT that the user wants to remove
-    """
-
-    # Remove the selected_composite_node, their children and grandchildren from original_case
     selected_composite_node = selected_subtree['trees'][0]['root']
     modified_tree = search_and_remove(
         original_tree, selected_composite_node)
-    # so here, we have the tree without the tree
 
-    # Find the similar composite node id
     similar_composite_node = next(iter(most_similar_subtree.keys()))
-    # print('\nsimilar_composite_node:',similar_composite_node)
 
-    # Find the parent of the selected_composite_node
     parent = get_parent_node(selected_composite_node,
                              modified_tree['trees'][0]['nodes'])
-    # print("\nParent ID:", parent)
-    # parent_node = fetch_node_details(modified_tree['trees'][0]['nodes'], parent)
     parent_node = modified_tree['trees'][0]['nodes'][parent]
 
-    # child_ids = extract_children_ids(parent_node)
-    # print('child_ids:', child_ids)
-
-    # # Substitute the target node with the new JSON structure
-    # Substitute selected_composite_node with similar_composite_node
     updated_parent_node = substitute_node(
         parent_node, selected_composite_node, similar_composite_node)
-#     print('\nupdated_parent_node', updated_parent_node)
-#     print('\nmodified_tree:', modified_tree)
 
-    # # Add the most_similar_subtree to the modified tree
     modified_tree['trees'][0]['nodes'].update(most_similar_subtree)
-    # print('\nFinal tree:', modified_tree)
-
-    # modified_tree_final = copy.deepcopy(original_tree)
-    # modified_tree_final[0]['data'] = modified_tree
-
-#     print("my_modified_tree")
-#     print(modified_tree_final)
-
     return modified_tree
+
 
 def filter_nodes(node, nodes, result):
     result[node["id"]] = node
@@ -1074,23 +994,25 @@ def filter_nodes(node, nodes, result):
         result[children["Id"]] = nodes[children["Id"]]
         if "Next" in children:
             filter_nodes(nodes[children["Next"]["Id"]], nodes, result)
-        return 
+        return
     return
+
 
 def find_subtree(_tree, _node_id):
     parent_tree = copy.deepcopy(_tree)
     for tree in parent_tree["trees"]:
         nodes = tree.get('nodes', {})
 
-        selected_node = [n for k,n in nodes.items() if k == _node_id]
+        selected_node = [n for k, n in nodes.items() if k == _node_id]
         if selected_node:
             result = {}
             filter_nodes(selected_node[0], nodes, result)
             tree['nodes'] = result
             tree['root'] = selected_node[0]["id"]
         else:
-            continue   
-    return {"data":parent_tree}
+            continue
+    return {"data": parent_tree}
+
 
 def replace_subtree(data):
     if data is None:
@@ -1115,58 +1037,42 @@ def replace_subtree(data):
     applicabilities = explainers_applicability(
         usecase_context, explainer_props, ontology_props, False)
 
-    # getting the graph format of the solutions (trees)
     tree_dict = convert_to_graph(neighbours)
-    # check if neighbours are applicable
     tree_dict_filtered = dict()
     for key, tree in tree_dict.items():
-        # We check if the tree is applicable in this use case
         if check_applicability(tree['tree_graph'], applicabilities):
-            # is the user has included critiques
             if criteria:
-                # we obtain the explainers in the library that satisfies the critiques
                 explainers_filtered = filter_explainers_by_criteria(
                     explainer_props, criteria)
-                # here we check if the BT has explainers that satisfy the critiques
-                # we dont need to check if the explainers obtained from the critiques are applicable
-                # because the tree is already applicable (then only the BTs with explainers applicable are retrieved)
                 if filter_trees_by_criteria(explainers_filtered, tree):
                     tree_dict_filtered[key] = tree
             else:
                 tree_dict_filtered[key] = tree
 
-    # trick to make the translation properly
     query_subtree = [find_subtree(query_tree, query_subtree_id)]
-    query_subtree_graph = convert_to_graph(query_subtree)['tree_1']['tree_graph']
+    query_subtree_graph = convert_to_graph(
+        query_subtree)['tree_1']['tree_graph']
 
-    # for every BT in the case base:
-    #   compare the query with that BT (taking into account that the query is not the same to the case)
     solution = {}
     for bt in tree_dict:
         tree_case = tree_dict[bt]['tree_graph']
-        # here we make sure that the subtree is not the same that we are going to use for replacement
-        if query_subtree_graph != tree_case:  # does this work?
+        if query_subtree_graph != tree_case: 
             solution[bt] = edit_distance(
                 query_subtree_graph, tree_case, semantic_delta_parent(similarities))
 
-    # Sort solution to get the BT with the lowest edit distance
     sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
-    my_solutions = list()
+    results = []
     k = min(len(sorted_BTs), data.get("k"))
 
     for key in range(k):
-        print("key", k)
-        # getting the most similar one and the graph format of that BT
         solution_graph_format = sorted_BTs[key][0]
-        # From the structure above, we have to get the json format for that solution (if there is root, we have to remove the root)
         solution_json = tree_dict[solution_graph_format]['tree_json']
-        # remove the root node from the most similar BT
         solution_no_root = remove_root(solution_json)
         modified_tree = get_modified_case(
             query_tree, query_subtree[0]["data"], solution_no_root)
-        my_solutions.append(modified_tree)
-    print("step 9", my_solutions)
-    return my_solutions
+        results.append(modified_tree)
+
+    return results
 
 
 def substitute(data):
