@@ -1150,10 +1150,10 @@ def replace_subtree(data):
         if query_subtree_graph != tree_case:  # does this work?
             solution[bt] = edit_distance(
                 query_subtree_graph, tree_case, semantic_delta_parent(similarities))
-    print("step 7")
+    print("step 7", solution)
     # Sort solution to get the BT with the lowest edit distance
     sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
-    print("step 8")
+    print("step 8", sorted_BTs)
     my_solutions = list()
     for key in sorted_BTs:
         # getting the most similar one and the graph format of that BT
