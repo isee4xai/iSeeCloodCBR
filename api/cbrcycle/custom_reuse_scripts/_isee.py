@@ -577,7 +577,12 @@ def nlg(ex1, ex2, ontology_props):
     if ex1['computational_complexity'] == ex2['computational_complexity']:
         explanation = explanation + ', ' + "they have the same computational complexity: " + \
             ontology_props["ComputationalComplexity"][ex1['computational_complexity']]
-
+    if ex1['model_access'] == ex2['model_access'] :
+        explanation = explanation + ', ' + "they support same model access type: " + \
+            ontology_props["ModelAccess"][ex1['model_access']]
+    if ex1['needs_training_data'] == ex2['needs_training_data'] :
+        explanation = explanation + ', ' + "they both have same training data requirements"
+    
     technique = nlg_complex(ex1['technique'], ex2['technique'],
                             "they are the same explainability technique type: ", ontology_props['ExplainabilityTechnique']).strip()
     explanation = explanation + (', ' + technique if technique else '')
