@@ -1163,7 +1163,7 @@ def replace_subtree(data):
         # remove the root node from the most similar BT
         solution_no_root = remove_root(solution_json)
         modified_tree = get_modified_case(
-            query_tree, query_subtree[0], solution_no_root)
+            query_tree, query_subtree[0]["data"], solution_no_root)
         my_solutions.append(modified_tree)
     print("step 9", my_solutions)
     return my_solutions
