@@ -712,7 +712,7 @@ def semantic_delta_parent(sims):
     def semantic_delta(x, y):
         # df = getSimilarityTable()
         # print(df["/Images/Anchors"]["/Images/Counterfactuals"])
-
+        composite_nodes = ['Sequence','Priority', 'Supplement', 'Replacement', 'Variant', 'Complement']
         if x == y:
             ret = 0.
         elif (x != None and y == None):  # inserting
@@ -725,11 +725,11 @@ def semantic_delta_parent(sims):
             # print("root")
             ret = np.inf
         # if both nodes are either sequence or priority, assign null cost
-        elif (x in ['Sequence', 'Priority'] and y in ['Sequence', 'Priority']):
+        elif (x in composite_nodes and y in composite_nodes):
             # print("sequence and priority")
             ret = 0.
         # if one of the nodes is a sequence or priority, the other won't because of the previous rule
-        elif (x in ['Sequence', 'Priority'] or y in ['Sequence', 'Priority']):
+        elif (x in composite_nodes or y in composite_nodes):
             # print("sequence or priority")
             ret = np.inf
         elif x in sims and y in sims:  # If both nodes are explainers
