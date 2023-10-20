@@ -713,6 +713,11 @@ def semantic_delta_parent(sims):
         # df = getSimilarityTable()
         # print(df["/Images/Anchors"]["/Images/Counterfactuals"])
         composite_nodes = ['Sequence','Priority', 'Supplement', 'Replacement', 'Variant', 'Complement']
+        if x == '/Images/GradCamTorch':
+            x = '/Images/GradCam'
+        if y == '/Images/GradCamTorch':
+            y = '/Images/GradCam'
+                
         if x == y:
             ret = 0.
         elif (x != None and y == None):  # inserting
