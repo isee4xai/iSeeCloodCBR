@@ -1150,10 +1150,12 @@ def replace_subtree(data):
                 query_subtree_graph, tree_case, semantic_delta_parent(similarities))
 
     # Sort solution to get the BT with the lowest edit distance
-    sorted_BTs = dict(sorted(solution.items(), key=lambda x: x[1]))
+    sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
     my_solutions = list()
     k = min(len(sorted_BTs), data.get("k"))
+
     for key in range(k):
+        print("key", k)
         # getting the most similar one and the graph format of that BT
         solution_graph_format = sorted_BTs[key][0]
         # From the structure above, we have to get the json format for that solution (if there is root, we have to remove the root)
