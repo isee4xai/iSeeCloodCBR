@@ -897,6 +897,8 @@ def check_applicability(bt_graph, applicabilities):
     while applicability and i < len(my_nodes):
         node = my_nodes[i]
         if node[0] == '/':
+            if node == '/Images/GradCamTorch':
+                node = '/Images/GradCam'
             applicability = applicability and applicabilities[node]["flag"]
         i = i + 1
     return applicability
