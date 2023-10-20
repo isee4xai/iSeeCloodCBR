@@ -1099,7 +1099,8 @@ def replace_subtree(data):
     ontology_support = data.get("ontology_props")
     query_case = data.get("query_case")
     explain = data.get("explain") == 'true'
-    query_subtree_id = data.get("query_subtree_id")
+    query_subtree_id = data.get("query_subtree")
+    print("query_subtree_id", query_subtree_id, "k", data.get("k"))
     query_tree = data.get("query_tree")
     neighbours = data.get("neighbours")
     criteria = data.get("criteria")
@@ -1150,12 +1151,12 @@ def replace_subtree(data):
         if query_subtree_graph != tree_case:  # does this work?
             solution[bt] = edit_distance(
                 query_subtree_graph, tree_case, semantic_delta_parent(similarities))
-    print("step 7", solution)
+    print("step 7")
     # Sort solution to get the BT with the lowest edit distance
-    sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
-    print("step 8", sorted_BTs)
+    sorted_BTs = dict(sorted(solution.items(), key=lambda x: x[1]))
+    print("step 8", min(len(sorted_BTs), data.get("k")))
     my_solutions = list()
-    for key in sorted_BTs:
+    for key in min(len(sorted_BTs), data.get("k")):
         # getting the most similar one and the graph format of that BT
         solution_graph_format = sorted_BTs[key][0]
         # From the structure above, we have to get the json format for that solution (if there is root, we have to remove the root)
