@@ -1029,9 +1029,9 @@ def get_modified_case(original_tree, selected_subtree, most_similar_subtree):
     """
 
     # Remove the selected_composite_node, their children and grandchildren from original_case
-    selected_composite_node = selected_subtree[0]['data']['trees'][0]['root']
+    selected_composite_node = selected_subtree['trees'][0]['root']
     modified_tree = search_and_remove(
-        original_tree[0]['data'], selected_composite_node)
+        original_tree, selected_composite_node)
     # so here, we have the tree without the tree
 
     # Find the similar composite node id
@@ -1059,8 +1059,8 @@ def get_modified_case(original_tree, selected_subtree, most_similar_subtree):
     modified_tree['trees'][0]['nodes'].update(most_similar_subtree)
     # print('\nFinal tree:', modified_tree)
 
-    modified_tree_final = copy.deepcopy(original_tree)
-    modified_tree_final[0]['data'] = modified_tree
+    # modified_tree_final = copy.deepcopy(original_tree)
+    # modified_tree_final[0]['data'] = modified_tree
 
 #     print("my_modified_tree")
 #     print(modified_tree_final)
