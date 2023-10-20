@@ -432,7 +432,7 @@ def get_usecase_context(usecase):
     context["ai_method"] = usecase["settings"]["ai_method"]
     context["dataset_type"] = usecase["settings"]["dataset_type"]
     context["implementation"] = usecase["model"]["backend"]
-    context["model_mode"] = usecase["model"]["mode"]
+    context["model_mode"] = "http://www.w3id.org/iSeeOnto/explainer#File_access" if usecase["model"]["mode"] == "file" else "http://www.w3id.org/iSeeOnto/explainer#URL_access" if usecase["model"]["mode"] == "api" else "http://www.w3id.org/iSeeOnto/explainer#Any_access"
     context["has_training_data"] = usecase["model"]["dataset_file"] is not None
 
     return context
