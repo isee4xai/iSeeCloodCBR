@@ -506,11 +506,11 @@ def explainer_applicability(context, explainer, ontology_props, explain):
                 format_attr(context["ai_task"], 3, "AITask",
                             ontology_props) + " tasks."
             
-    if ANY_ACCESS_URI != explainer["model_access"] and explainer["model_access"] != context["model_access"]:
+    if ANY_ACCESS_URI != explainer["model_access"] and explainer["model_access"] != context["model_mode"]:
         flag = False
         if explain:
             msg = msg+"\n- Model Access Mismatch: " + explainer["name"] + " does not support " + \
-                context["model_access"]+ " model access."
+                context["model_mode"]+ " model access."
 
     if explainer["needs_training_data"] == "true" and not context["has_training_data"]:
         flag = False
