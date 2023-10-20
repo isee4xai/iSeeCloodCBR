@@ -405,6 +405,8 @@ functions for constructive adaptation
 '''
 ANY_URI = 'http://www.w3id.org/iSeeOnto/explainer#Any'
 
+ANY_ACCESS_URI = 'http://www.w3id.org/iSeeOnto/explainer#Any_access'
+
 INTENTS = {
     "DEBUGGING": ["Is this the same outcome for similar instances?", "Is this instance a common occurrence?"],
     "TRANSPARENCY": ["What is the impact of feature X on the outcome?", "How does feature X impact the outcome?", "What are the necessary features that guarantee this outcome?", "Why does the AI system have given outcome A?", "Which feature contributed to the current outcome?", "How does the AI system respond to feature X?", "What is the goal of the AI system?", "What is the scope of the AI system capabilities?", "What features does the AI system consider?", "What are the important features for the AI system?", "What is the impact of feature X on the AI system?", "How much evidence has been considered to build the AI system?", "How much evidence has been considered in the current outcome?", "What are the possible outcomes of the AI system?", "What features are used by the AI system?"],
@@ -430,6 +432,8 @@ def get_usecase_context(usecase):
     context["ai_method"] = usecase["settings"]["ai_method"]
     context["dataset_type"] = usecase["settings"]["dataset_type"]
     context["implementation"] = usecase["model"]["backend"]
+    context["model_mode"] = usecase["model"]["mode"]
+    context["has_training_data"] = usecase["model"]["dataset_file"] is not None
 
     return context
 
@@ -501,7 +505,17 @@ def explainer_applicability(context, explainer, ontology_props, explain):
             msg = msg+"\n- AI Task Mismatch: " + explainer["name"] + " does not support " + \
                 format_attr(context["ai_task"], 3, "AITask",
                             ontology_props) + " tasks."
+            
+    if ANY_ACCESS_URI != explainer["model_access"] and explainer["model_access"] != context["model_access"]:
+        flag = False
+        if explain:
+            msg = msg+"\n- Model Access Mismatch: " + explainer["name"] + " does not support " + \
+                context["model_access"]+ " model access."
 
+    if explainer["needs_training_data"] == "true" and not context["has_training_data"]:
+        flag = False
+        if explain:
+            msg = msg+"\n- Explainer requires training data."
     return flag, msg
 
 
