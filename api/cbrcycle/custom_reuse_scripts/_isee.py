@@ -1086,11 +1086,9 @@ def replace_subtree(data):
         solution_no_root = remove_root(solution_json)
         modified_tree = get_modified_case(
             query_tree, query_subtree[0]["data"], solution_no_root)
-        
-        explanation = nlg_subtree(query_subtree[0]["data"]["nodes"], solution_no_root) if explain else ""
-
+    
         tree_dict_filtered[solution_graph_format]["complete_json"]["data"] = modified_tree
-        tree_dict_filtered[solution_graph_format]["complete_json"]["explanation"] = explanation
+        tree_dict_filtered[solution_graph_format]["complete_json"]["explanation"] = ""
         results.append(tree_dict_filtered[solution_graph_format]["complete_json"])
 
     return results
