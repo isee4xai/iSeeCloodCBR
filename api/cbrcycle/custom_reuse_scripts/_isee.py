@@ -984,7 +984,7 @@ def substitute_node(node, target_id, new_node):
 def get_modified_case(original_tree, selected_subtree, most_similar_subtree):
     selected_composite_node = selected_subtree['trees'][0]['root']
     modified_tree = search_and_remove(
-        original_tree, selected_composite_node)
+        original_tree["data"], selected_composite_node)
 
     similar_composite_node = next(iter(most_similar_subtree.keys()))
 
