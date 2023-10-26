@@ -1084,8 +1084,8 @@ def replace_subtree(data):
         modified_tree = get_modified_case(
             query_tree, query_subtree[0]["data"], solution_no_root)
 
-        tree_dict_filtered[solution_graph_format]["data"] = modified_tree
-        results.append(tree_dict_filtered[solution_graph_format])
+        tree_dict_filtered[solution_graph_format]["complete_json"]["data"] = modified_tree
+        results.append(tree_dict_filtered[solution_graph_format]["complete_json"])
     
     return results
 
