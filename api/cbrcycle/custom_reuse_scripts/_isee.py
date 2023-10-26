@@ -731,12 +731,6 @@ def edit_distance(q, c, delta):
 
 def semantic_delta_parent(sims):
     def semantic_delta(x, y):
-
-        if x == '/Images/GradCamTorch':
-            x = '/Images/GradCam'
-        if y == '/Images/GradCamTorch':
-            y = '/Images/GradCam'
-
         if x == y:
             _dist = 0.
         elif (x != None and y == None):
@@ -881,6 +875,7 @@ def convert_to_graph(cases):
 
         tree_key = f'tree_{idx}'
         tree_dict[tree_key] = {
+            'complete_json': obj,
             'tree_json': trees,
             'tree_graph': {
                 'nodes': node_list,
@@ -898,8 +893,6 @@ def check_applicability(bt_graph, applicabilities):
     while applicability and i < len(my_nodes):
         node = my_nodes[i]
         if node[0] == '/':
-            if node == '/Images/GradCamTorch':
-                node = '/Images/GradCam'
             applicability = applicability and applicabilities[node]["flag"]
         i = i + 1
     return applicability
@@ -1019,7 +1012,7 @@ def filter_nodes(node, nodes, result):
 
 def find_subtree(_tree, _node_id):
     parent_tree = copy.deepcopy(_tree)
-    for tree in parent_tree["trees"]:
+    for tree in parent_tree["data"]["trees"]:
         nodes = tree.get('nodes', {})
 
         selected_node = [n for k, n in nodes.items() if k == _node_id]
@@ -1030,7 +1023,7 @@ def find_subtree(_tree, _node_id):
             tree['root'] = selected_node[0]["id"]
         else:
             continue
-    return {"data": parent_tree}
+    return parent_tree
 
 
 def replace_subtree(data):
@@ -1073,8 +1066,8 @@ def replace_subtree(data):
         query_subtree)['tree_1']['tree_graph']
 
     solution = {}
-    for bt in tree_dict:
-        tree_case = tree_dict[bt]['tree_graph']
+    for bt in tree_dict_filtered:
+        tree_case = tree_dict_filtered[bt]['tree_graph']
         if query_subtree_graph != tree_case: 
             solution[bt] = edit_distance(
                 query_subtree_graph, tree_case, semantic_delta_parent(similarities))
@@ -1082,15 +1075,18 @@ def replace_subtree(data):
     sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
     results = []
     k = min(len(sorted_BTs), data.get("k"))
+    print("sortedBTs", sorted_BTs)
 
     for key in range(k):
         solution_graph_format = sorted_BTs[key][0]
-        solution_json = tree_dict[solution_graph_format]['tree_json']
+        solution_json = tree_dict_filtered[solution_graph_format]['tree_json']
         solution_no_root = remove_root(solution_json)
         modified_tree = get_modified_case(
             query_tree, query_subtree[0]["data"], solution_no_root)
-        results.append(modified_tree)
 
+        tree_dict_filtered[solution_graph_format]["data"] = modified_tree
+        results.append(tree_dict_filtered[solution_graph_format])
+    
     return results
 
 
