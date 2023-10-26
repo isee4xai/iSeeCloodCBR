@@ -899,15 +899,12 @@ def check_applicability(bt_graph, applicabilities):
 
 
 def filter_trees_by_criteria(matching_explainers, tree):
-    print("matching_explainers", matching_explainers);
     tree_match = False
     if 'tree_graph' in tree:
         graph = tree['tree_graph']
         if 'nodes' in graph:
             nodes = graph['nodes']
-            print("nodes", nodes)
             common_explainers = list(set(nodes) & set(matching_explainers))
-            print("common_explainers", common_explainers)
             if common_explainers != []:
                 tree_match = True
 
@@ -1060,15 +1057,12 @@ def replace_subtree(data):
     tree_dict_filtered = dict()
     for key, tree in tree_dict.items():
         if check_applicability(tree['tree_graph'], applicabilities):
-            print("applicability", "true");
             if criteria:
-                print("criteria", criteria);
                 explainers_filtered = filter_explainers_by_criteria(
                     explainer_props, criteria)
-                if filter_trees_by_criteria(explainers_filtered, tree):
+                if filter_trees_by_criteria([e["name"] for e in explainers_filtered], tree):
                     tree_dict_filtered[key] = tree
             else:
-                print("criteria", "none");
                 tree_dict_filtered[key] = tree
 
     query_subtree = [find_subtree(query_tree, query_subtree_id)]
