@@ -548,14 +548,14 @@ def applicability(data=None):
     return result
 
 
-def nlg_batch(query, others, ontology_props):
+def nlg_explainer_batch(query, others, ontology_props):
     results = {}
     for other in others:
-        results[other["name"]] = nlg(query, other, ontology_props)
+        results[other["name"]] = nlg_explainer(query, other, ontology_props)
     return results
 
 
-def nlg(ex1, ex2, ontology_props):
+def nlg_explainer(ex1, ex2, ontology_props):
     explanation = ""
 
     explanation = "Explainers are similar because "
@@ -700,7 +700,7 @@ def replace_explainer(data):
 
     explainers_props_extended_filtered = [e for e in explainer_props_extended if e["name"] in [
         f["name"] for f in explainer_props_filtered]]
-    nlg_result = nlg_batch(query_explainer_props_extended,
+    nlg_result = nlg_explainer_batch(query_explainer_props_extended,
                            explainers_props_extended_filtered, ontology_props) if explain else {}
 
     result = [{"explainer": e["name"],
@@ -982,18 +982,18 @@ def substitute_node(node, target_id, new_node):
 
 
 def get_modified_case(original_tree, selected_subtree, most_similar_subtree):
-    selected_composite_node = selected_subtree['trees'][0]['root']
+    selected_node = selected_subtree['trees'][0]['root']
     modified_tree = search_and_remove(
-        original_tree["data"], selected_composite_node)
+        original_tree["data"], selected_node)
 
-    similar_composite_node = next(iter(most_similar_subtree.keys()))
+    similar_node = next(iter(most_similar_subtree.keys()))
 
-    parent = get_parent_node(selected_composite_node,
+    parent = get_parent_node(selected_node,
                              modified_tree['trees'][0]['nodes'])
     parent_node = modified_tree['trees'][0]['nodes'][parent]
 
     updated_parent_node = substitute_node(
-        parent_node, selected_composite_node, similar_composite_node)
+        parent_node, selected_node, similar_node)
 
     modified_tree['trees'][0]['nodes'].update(most_similar_subtree)
     return modified_tree
@@ -1025,6 +1025,10 @@ def find_subtree(_tree, _node_id):
             continue
     return parent_tree
 
+def nlg_subtree(q_nodes, s_nodes):
+    print(q_nodes)
+    print(s_nodes)
+    return ""
 
 def replace_subtree(data):
     if data is None:
@@ -1075,7 +1079,6 @@ def replace_subtree(data):
     sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
     results = []
     k = min(len(sorted_BTs), data.get("k"))
-    print("sortedBTs", sorted_BTs)
 
     for key in range(k):
         solution_graph_format = sorted_BTs[key][0]
@@ -1083,10 +1086,13 @@ def replace_subtree(data):
         solution_no_root = remove_root(solution_json)
         modified_tree = get_modified_case(
             query_tree, query_subtree[0]["data"], solution_no_root)
+        
+        explanation = nlg_subtree(query_subtree[0]["data"]["nodes"], solution_no_root) if explain else ""
 
         tree_dict_filtered[solution_graph_format]["complete_json"]["data"] = modified_tree
+        tree_dict_filtered[solution_graph_format]["complete_json"]["explanation"] = explanation
         results.append(tree_dict_filtered[solution_graph_format]["complete_json"])
-    
+
     return results
 
 
