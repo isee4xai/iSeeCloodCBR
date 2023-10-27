@@ -985,7 +985,7 @@ def get_modified_case(query_tree, query_subtree, solution_tree):
     selected_node = query_subtree['trees'][0]['root']
     modified_tree = copy.deepcopy(query_tree)
     modified_tree = search_and_remove(modified_tree, selected_node)
-    solution_root = solution_tree['trees'][0]['root']
+    solution_root = solution_tree[0]['root']
 
     parent = get_parent_node(selected_node,
                              modified_tree['trees'][0]['nodes'])
@@ -996,7 +996,7 @@ def get_modified_case(query_tree, query_subtree, solution_tree):
     else:
         modified_tree['trees'][0]['root'] = solution_root
 
-    modified_tree['trees'][0]['nodes'].update(solution_tree['trees'][0]['nodes'])
+    modified_tree['trees'][0]['nodes'].update(solution_tree[0]['nodes'])
     return modified_tree
 
 
