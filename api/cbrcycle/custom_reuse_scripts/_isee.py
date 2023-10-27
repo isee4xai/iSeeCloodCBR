@@ -981,21 +981,22 @@ def substitute_node(node, target_id, new_node):
     return node
 
 
-def get_modified_case(original_tree, selected_subtree, most_similar_subtree):
-    selected_node = selected_subtree['trees'][0]['root']
-    modified_tree = search_and_remove(
-        original_tree["data"], selected_node)
-
-    similar_node = next(iter(most_similar_subtree.keys()))
+def get_modified_case(query_tree, query_subtree, solution_tree):
+    selected_node = query_subtree['trees'][0]['root']
+    modified_tree = copy.deepcopy(query_tree)
+    modified_tree = search_and_remove(modified_tree, selected_node)
+    solution_root = solution_tree['trees'][0]['root']
 
     parent = get_parent_node(selected_node,
                              modified_tree['trees'][0]['nodes'])
-    parent_node = modified_tree['trees'][0]['nodes'][parent]
+    if parent:
+        parent_node = modified_tree['trees'][0]['nodes'][parent]
+        substitute_node(
+            parent_node, selected_node, solution_root)
+    else:
+        modified_tree['trees'][0]['root'] = solution_root
 
-    updated_parent_node = substitute_node(
-        parent_node, selected_node, similar_node)
-
-    modified_tree['trees'][0]['nodes'].update(most_similar_subtree)
+    modified_tree['trees'][0]['nodes'].update(solution_tree['trees'][0]['nodes'])
     return modified_tree
 
 
@@ -1085,7 +1086,7 @@ def replace_subtree(data):
         solution_json = tree_dict_filtered[solution_graph_format]['tree_json']
         # solution_no_root = remove_root(solution_json)
         modified_tree = get_modified_case(
-            query_tree, query_subtree[0]["data"], solution_json[0]['nodes'])
+            query_tree["data"], query_subtree[0]["data"], solution_json)
     
         tree_dict_filtered[solution_graph_format]["complete_json"]["data"] = modified_tree
         tree_dict_filtered[solution_graph_format]["complete_json"]["explanation"] = ""
