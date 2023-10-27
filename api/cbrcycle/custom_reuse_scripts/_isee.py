@@ -1083,9 +1083,9 @@ def replace_subtree(data):
     for key in range(k):
         solution_graph_format = sorted_BTs[key][0]
         solution_json = tree_dict_filtered[solution_graph_format]['tree_json']
-        solution_no_root = remove_root(solution_json)
+        # solution_no_root = remove_root(solution_json)
         modified_tree = get_modified_case(
-            query_tree, query_subtree[0]["data"], solution_no_root)
+            query_tree, query_subtree[0]["data"], solution_json)
     
         tree_dict_filtered[solution_graph_format]["complete_json"]["data"] = modified_tree
         tree_dict_filtered[solution_graph_format]["complete_json"]["explanation"] = ""
