@@ -1059,8 +1059,11 @@ def replace_subtree(data):
     for key, tree in tree_dict.items():
         if check_applicability(tree['tree_graph'], applicabilities):
             if criteria:
-                explainers_filtered = filter_explainers_by_criteria(
-                    explainer_props, criteria)
+                if "explainer" in criteria:
+                    explainers_filtered = [e for e in explainer_props if e["name"] in criteria["explainer"]]
+                else:
+                    explainers_filtered = filter_explainers_by_criteria(
+                        explainer_props, criteria)
                 if filter_trees_by_criteria([e["name"] for e in explainers_filtered], tree):
                     tree_dict_filtered[key] = tree
             else:
