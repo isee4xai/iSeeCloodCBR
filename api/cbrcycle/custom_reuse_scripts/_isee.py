@@ -561,7 +561,7 @@ def nlg_explainer(ex1, ex2, ontology_props):
     explanation = "Explainers are similar because "
     if ex1['dataset_type'] == ex2['dataset_type']:
         explanation = explanation + "they can be applied to the same dataset type: " + \
-            ontology_props["DatasetType"][ex1['dataset_type']] + " data "
+            ontology_props["DatasetType"][ex1['dataset_type']] + " data"
     if ex1['concurrentness'] == ex2['concurrentness']:
         explanation = explanation + ', ' + "they have the same concurrentness: " + \
             ontology_props["Concurrentness"][ex1['concurrentness']]
@@ -578,10 +578,10 @@ def nlg_explainer(ex1, ex2, ontology_props):
         explanation = explanation + ', ' + "they have the same computational complexity: " + \
             ontology_props["ComputationalComplexity"][ex1['computational_complexity']]
     if ex1['model_access'] == ex2['model_access'] :
-        explanation = explanation + ', ' + "they support same model access type: " + \
+        explanation = explanation + ', ' + "they support the same model access type: " + \
             ontology_props["ModelAccess"][ex1['model_access']]
     if ex1['needs_training_data'] == ex2['needs_training_data'] :
-        explanation = explanation + ', ' + "they both have same training data requirements"
+        explanation = explanation + ', ' + "they both have the same training data requirements"
     
     technique = nlg_complex(ex1['technique'], ex2['technique'],
                             "they are the same explainability technique type: ", ontology_props['ExplainabilityTechnique']).strip()
