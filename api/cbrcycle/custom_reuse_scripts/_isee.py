@@ -1077,8 +1077,10 @@ def replace_subtree(data):
     for bt in tree_dict_filtered:
         tree_case = tree_dict_filtered[bt]['tree_graph']
         if query_subtree_graph != tree_case: 
-            solution[bt] = edit_distance(
+            edit_distance_value = edit_distance(
                 query_subtree_graph, tree_case, semantic_delta_parent(similarities))
+            if edit_distance_value != 0:
+                solution[bt] = edit_distance_value
 
     sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
     results = []
