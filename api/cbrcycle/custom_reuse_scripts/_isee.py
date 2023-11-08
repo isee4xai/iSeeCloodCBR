@@ -1031,6 +1031,22 @@ def nlg_subtree(q_nodes, s_nodes):
     print(s_nodes)
     return ""
 
+def filter_same_question(bt1, bt2):
+    """
+        bt1, bt2 -> graph format
+        Function to check if the questions in two BTs are exactly the same (returns true). 
+        If the questions are not exactly the same, returns false
+    """
+    question_isee = [question for intent in INTENTS.values() for question in intent]
+    questions_bt1 = sorted([x for x in bt1["nodes"] if x in question_isee])
+    questions_bt2 = sorted([x for x in bt2["nodes"] if x in question_isee])
+    
+    if questions_bt1 == questions_bt2:
+        return True
+    else:
+        return False
+
+
 def replace_subtree(data):
     if data is None:
         return {}
@@ -1076,9 +1092,13 @@ def replace_subtree(data):
     solution = {}
     for bt in tree_dict_filtered:
         tree_case = tree_dict_filtered[bt]['tree_graph']
-        if query_subtree_graph != tree_case: 
-            solution[bt] = edit_distance(
+        # here we are checking if the case has the same questions than the query
+        # we should comment "and filter_same_question(tree_case, query_subtree_graph)" if we dont want to consider the questions
+        if query_subtree_graph != tree_case and filter_same_question(tree_case, query_subtree_graph): 
+            edit_distance_value = edit_distance(
                 query_subtree_graph, tree_case, semantic_delta_parent(similarities))
+            if edit_distance_value != 0:
+                solution[bt] = edit_distance_value
 
     sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
     results = []
