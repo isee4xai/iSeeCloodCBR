@@ -1084,24 +1084,29 @@ def replace_subtree(data):
         query_subtree)['tree_1']['tree_graph']
 
     solution = {}
+    print("tree_dict_filtered", tree_dict_filtered)
     for bt in tree_dict_filtered:
         tree_case = tree_dict_filtered[bt]['tree_graph']
         if query_subtree_graph != tree_case: 
             # exclude recommending trees with user question mis-matches
             if not match_questions(tree_case, query_subtree_graph):
+                print("question not matched")
                 continue
+            print("question matched")
             edit_distance_value = edit_distance(
                 query_subtree_graph, tree_case, semantic_delta_parent(similarities))
             # exclude recommending trees with exact match
             if edit_distance_value != 0:
                 solution[bt] = edit_distance_value
-
+    print("solution", solution)
     sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
+    print("sorted_BTs", sorted_BTs)
     results = []
     k = min(len(sorted_BTs), data.get("k"))
 
     for key in range(k):
         solution_graph_format = sorted_BTs[key][0]
+        print("solution_graph_format", solution_graph_format)
         solution_json = tree_dict_filtered[solution_graph_format]['tree_json']
         # solution_no_root = remove_root(solution_json)
         modified_tree = get_modified_case(
