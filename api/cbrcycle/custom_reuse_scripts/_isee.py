@@ -1088,7 +1088,7 @@ def replace_subtree(data):
         tree_case = tree_dict_filtered[bt]['tree_graph']
         if query_subtree_graph != tree_case: 
             # exclude recommending trees with user question mis-matches
-            if not match_questions(tree_case, query_subtree_graph):
+            if match_questions(tree_case, query_subtree_graph):
                 continue
             edit_distance_value = edit_distance(
                 query_subtree_graph, tree_case, semantic_delta_parent(similarities))
