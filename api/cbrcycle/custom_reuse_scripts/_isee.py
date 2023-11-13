@@ -1036,8 +1036,10 @@ def nlg_subtree(q_nodes, s_nodes):
 def match_questions(bt1, bt2):
     valid_questions = [question for intent in INTENTS.values() for question in intent]
     questions_bt1 = Counter([x for x in bt1["nodes"] if x in valid_questions])
+    print("questions_bt1", questions_bt1)
     questions_bt2 = Counter([x for x in bt2["nodes"] if x in valid_questions])
-    
+    print("questions_bt2", questions_bt2)
+    print("match", questions_bt1 == questions_bt2)
     return questions_bt1 == questions_bt2
 
 
