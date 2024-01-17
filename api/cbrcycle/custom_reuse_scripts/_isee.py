@@ -136,7 +136,7 @@ def get_intent_overlap(query_list, nn_list, pairings):
 
 
 def get_nodes(current_node, nodes, node_list):
-    node_list.append(current_node)
+    node_list.append(current_node.copy())
     # if a composite node with children
     children = current_node['firstChild'] if 'firstChild' in current_node else None
     while children:
@@ -179,6 +179,8 @@ def empty_solution(c):
         "Next": None
     }
     root_node['id'] = root_id
+    root_node['Concept'] = 'Priority'
+    root_node['Instance'] = 'Priority'
     selected_tree['root'] = root_id
     root_node['firstChild'] = temp_child
     # remove all nodes except the root sequence node
@@ -252,7 +254,6 @@ def clean_uuid(nodes, root_id):
 
 
 def adapt_solution(pairs, neighbours):
-    print("pairs", pairs)
     sub_trees = []
     for idx in range(len(pairs)):
         matched_pair = get_from_id_key(idx, pairs, 'query')
@@ -287,11 +288,11 @@ def adapt_solution(pairs, neighbours):
                 temp_question_node = first_child_type[0].copy()
                 temp_question_node['params']['Question']['value'] = q_q+';'
                 node_list.append(temp_question_node)
-                node_list.append(a_sub)
+                node_list.append(a_sub.copy())
                 node_list, root_node_id = clean_uuid(node_list, a_sub['id'])
                 sub_trees.append([node_list, root_node_id])
     adaptedSolution = generate_solution(
-        empty_solution(neighbours[0]['Solution']), sub_trees)
+        empty_solution(neighbours[0]['Solution'].copy()), sub_trees)
     return adaptedSolution
 
 
