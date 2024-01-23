@@ -54,7 +54,8 @@ def transform_adapt(input=None):
             res.append(pair_obj)
     pairings = res
     adapted_solution = adapt_solution(pairings, neighbours)
-
+    print("pairings", pairings)
+    print("adapted_solution", adapted_solution)
     return {
         "pairings": pairings,
         "score": score,
