@@ -27,8 +27,6 @@ def transform_adapt(input=None):
 
     query_case = input.get("query_case")
     neighbours = input.get("neighbours")
-    print("query_case", query_case)
-
     acceptance_threshold = input.get(
         "acceptance_threshold", 0.8)  # default as 0.8
 
@@ -55,8 +53,7 @@ def transform_adapt(input=None):
             res.append(pair_obj)
     pairings = res
     adapted_solution = adapt_solution(pairings, neighbours)
-    print("pairings", pairings)
-    print("adapted_solution", adapted_solution)
+
     return {
         "pairings": pairings,
         "score": score,
@@ -138,7 +135,7 @@ def get_intent_overlap(query_list, nn_list, pairings):
 
 
 def get_nodes(current_node, nodes, node_list):
-    node_list.append(current_node.copy())
+    node_list.append(copy.deepcopy(current_node))
     # if a composite node with children
     children = current_node['firstChild'] if 'firstChild' in current_node else None
     while children:
@@ -160,8 +157,21 @@ def question_match(q, q_list):
         return q == q_list
 
 
+def one_solution(c, body):
+    a_solution = copy.deepcopy(c)
+    a_solution['trees'] = [t for t in a_solution['trees']
+                               if t['id'] == a_solution['selectedTree']]
+    selected_tree = a_solution['trees'][0]
+    tree_id = str(uuid.uuid4())
+    selected_tree['id'] = tree_id
+    a_solution['selectedTree'] = tree_id
+    selected_tree['root'] = body[1]
+    a_solution['trees'][0]['nodes'] = {n["id"]: n for n in body[0]}
+    return a_solution
+
+
 def empty_solution(c):
-    empty_solution = c.copy()
+    empty_solution = copy.deepcopy(c)
     # leave only one tree in tree list
     empty_solution['trees'] = [t for t in empty_solution['trees']
                                if t['id'] == empty_solution['selectedTree']]
@@ -193,7 +203,7 @@ def empty_solution(c):
 def generate_next(template, ids, idx):
     template['Id'] = ids[idx]
     template['Next'] = None if idx + \
-        1 >= len(ids) else generate_next(template.copy(), ids, idx+1)
+        1 >= len(ids) else generate_next(copy.deepcopy(template), ids, idx+1)
     return template
 
 
@@ -204,7 +214,7 @@ def generate_solution(c, sub_trees):
     # otherwise
     c_nodes = c['trees'][0]['nodes']
     c_root_node = c['trees'][0]['nodes'][c['trees'][0]['root']]
-    temp_child = c_root_node['firstChild'].copy()
+    temp_child = copy.deepcopy(c_root_node['firstChild'])
     roots = []
     # add nodes in each sub-tree to the empty solution
     for sub_tree in sub_trees:
@@ -216,7 +226,7 @@ def generate_solution(c, sub_trees):
     c['trees'][0]['nodes'] = c_nodes
     # on the root, recursively create the references to top level children
     idx = 0
-    first_child = generate_next(temp_child.copy(), roots, idx)
+    first_child = generate_next(copy.deepcopy(temp_child), roots, idx)
     c_root_node['firstChild'] = first_child
     c['trees'][0]['nodes'][c['trees'][0]['root']] = c_root_node
     # updated solution tree
@@ -262,7 +272,7 @@ def adapt_solution(pairs, neighbours):
         q_q = matched_pair['query']['question']
         c_q = matched_pair['case']['question']
         c_idx = matched_pair['case']['k']
-        c_solution = neighbours[c_idx]['Solution']
+        c_solution = copy.deepcopy(neighbours[c_idx])
         # solution tree
         c_sol_tree = [t for t in c_solution['trees']
                       if t['id'] == c_solution['selectedTree']][0]
@@ -287,14 +297,20 @@ def adapt_solution(pairs, neighbours):
                 node_list = get_nodes(
                     es_sub_node, c_sol_tree['nodes'], node_list)
                 # create a new sub tree with q_q
-                temp_question_node = first_child_type[0].copy()
+                temp_question_node = copy.deepcopy(first_child_type[0])
                 temp_question_node['params']['Question']['value'] = q_q+';'
                 node_list.append(temp_question_node)
-                node_list.append(a_sub.copy())
+                node_list.append(copy.deepcopy(a_sub))
+                # print(json.dumps(node_list))
+                # print('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
                 node_list, root_node_id = clean_uuid(node_list, a_sub['id'])
                 sub_trees.append([node_list, root_node_id])
-    adaptedSolution = generate_solution(
-        empty_solution(neighbours[0]['Solution'].copy()), sub_trees)
+    if len(sub_trees) > 1:
+        a_solution = empty_solution(copy.deepcopy(neighbours[0]))
+        adaptedSolution = generate_solution(a_solution, sub_trees)
+    else:
+        adaptedSolution = one_solution(copy.deepcopy(neighbours[0]), sub_trees[0])
+    # print(json.dumps(adaptedSolution))
     return adaptedSolution
 
 
