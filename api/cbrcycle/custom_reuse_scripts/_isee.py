@@ -266,6 +266,8 @@ def clean_uuid(nodes, root_id):
 
 
 def adapt_solution(pairs, neighbours):
+    print("pairs", pairs)
+    print("neighbours", len(neighbours))
     sub_trees = []
     for idx in range(len(pairs)):
         matched_pair = get_from_id_key(idx, pairs, 'query')
