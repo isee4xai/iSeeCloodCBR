@@ -27,6 +27,7 @@ def transform_adapt(input=None):
 
     query_case = input.get("query_case")
     neighbours = input.get("neighbours")
+    print("query_case", query_case)
 
     acceptance_threshold = input.get(
         "acceptance_threshold", 0.8)  # default as 0.8
