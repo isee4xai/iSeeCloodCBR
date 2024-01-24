@@ -104,6 +104,7 @@ def get_cumulative_case_questions(nearest_neighbours, idx):
     Returns all the list entries up to index 'idx'. Returned items are transformed into a uniform format.
     """
     lst = []
+    print("get_cumulative_case_questions", idx, len(nearest_neighbours))
     for i in range(idx):
         case_id = i
         if 'id' in nearest_neighbours[i]:  # use case_id if it's available
@@ -414,7 +415,7 @@ def MATCH(cq, nn, i, alpha=0.8):
     """
     nn_lst = get_cumulative_case_questions(nn, i)
     pairings, score = match(cq, nn_lst)
-#     print(i, score, pairings)
+    print("i, score, pairings", i, score, pairings)
     if score > alpha or i == len(nn):
         return pairings, score, i, get_intent_overlap(cq, nn_lst, pairings), nn_lst
     else:
