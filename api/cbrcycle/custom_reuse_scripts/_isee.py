@@ -276,7 +276,7 @@ def adapt_solution(pairs, neighbours):
         q_q = matched_pair['query']['question']
         c_q = matched_pair['case']['question']
         c_idx = matched_pair['case']['k']
-        c_solution = copy.deepcopy(neighbours[c_idx])
+        c_solution = copy.deepcopy(neighbours[c_idx]['Solution'])
         # solution tree
         c_sol_tree = [t for t in c_solution['trees']
                       if t['id'] == c_solution['selectedTree']][0]
@@ -310,10 +310,10 @@ def adapt_solution(pairs, neighbours):
                 node_list, root_node_id = clean_uuid(node_list, a_sub['id'])
                 sub_trees.append([node_list, root_node_id])
     if len(sub_trees) > 1:
-        a_solution = empty_solution(copy.deepcopy(neighbours[0]))
+        a_solution = empty_solution(copy.deepcopy(neighbours[0]['Solution']))
         adaptedSolution = generate_solution(a_solution, sub_trees)
     else:
-        adaptedSolution = one_solution(copy.deepcopy(neighbours[0]), sub_trees[0])
+        adaptedSolution = one_solution(copy.deepcopy(neighbours[0]['Solution']), sub_trees[0])
     # print(json.dumps(adaptedSolution))
     return adaptedSolution
 
