@@ -105,6 +105,7 @@ def get_cumulative_case_questions(nearest_neighbours, idx):
     """
     lst = []
     print("get_cumulative_case_questions", idx, len(nearest_neighbours))
+    print("nearest_neighbours", nearest_neighbours)
     for i in range(idx):
         case_id = i
         if 'id' in nearest_neighbours[i]:  # use case_id if it's available
