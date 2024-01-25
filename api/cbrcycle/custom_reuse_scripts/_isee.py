@@ -104,8 +104,6 @@ def get_cumulative_case_questions(nearest_neighbours, idx):
     Returns all the list entries up to index 'idx'. Returned items are transformed into a uniform format.
     """
     lst = []
-    print("get_cumulative_case_questions", idx, len(nearest_neighbours))
-    print("nearest_neighbours", nearest_neighbours)
     for i in range(idx):
         case_id = i
         if 'id' in nearest_neighbours[i]:  # use case_id if it's available
@@ -268,8 +266,6 @@ def clean_uuid(nodes, root_id):
 
 
 def adapt_solution(pairs, neighbours):
-    print("pairs", pairs)
-    print("neighbours", len(neighbours))
     sub_trees = []
     for idx in range(len(pairs)):
         matched_pair = get_from_id_key(idx, pairs, 'query')
@@ -305,8 +301,6 @@ def adapt_solution(pairs, neighbours):
                 temp_question_node['params']['Question']['value'] = q_q+';'
                 node_list.append(temp_question_node)
                 node_list.append(copy.deepcopy(a_sub))
-                # print(json.dumps(node_list))
-                # print('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
                 node_list, root_node_id = clean_uuid(node_list, a_sub['id'])
                 sub_trees.append([node_list, root_node_id])
     if len(sub_trees) > 1:
@@ -314,7 +308,6 @@ def adapt_solution(pairs, neighbours):
         adaptedSolution = generate_solution(a_solution, sub_trees)
     else:
         adaptedSolution = one_solution(copy.deepcopy(neighbours[0]['Solution']), sub_trees[0])
-    # print(json.dumps(adaptedSolution))
     return adaptedSolution
 
 
@@ -416,7 +409,6 @@ def MATCH(cq, nn, i, alpha=0.8):
     """
     nn_lst = get_cumulative_case_questions(nn, i)
     pairings, score = match(cq, nn_lst)
-    print("i, score, pairings", i, score, pairings)
     if score > alpha or i == len(nn):
         return pairings, score, i, get_intent_overlap(cq, nn_lst, pairings), nn_lst
     else:
