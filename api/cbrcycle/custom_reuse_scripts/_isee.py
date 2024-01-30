@@ -1056,6 +1056,21 @@ def match_questions(bt1, bt2):
     # match only if both counters are not empty and equal
     return bool(questions_bt1) and bool(questions_bt2) and questions_bt1 == questions_bt2
 
+def removeQuestions(bt_with_questions):
+    bt_no_questions = bt_with_questions
+    nodes_to_add = list()
+    for node in bt_no_questions['nodes']:
+        node_to_add = node
+        if typeQuestion(node) != "NO_QUESTION":
+            node_to_add = "Question"
+        nodes_to_add.append(node_to_add)
+    bt_no_questions["nodes"] = nodes_to_add
+    return bt_no_questions
+
+def sameStructure(bt1, bts_list):
+    bt1_noq = removeQuestions(bt1)
+    bts_noq = list(map(removeQuestions, bts_list)) 
+    return bt1_noq in bts_noq
 
 def replace_subtree(data):
     if data is None:
@@ -1083,22 +1098,27 @@ def replace_subtree(data):
     tree_dict = convert_to_graph(neighbours)
     tree_dict_filtered = dict()
     for key, tree in tree_dict.items():
-        if check_applicability(tree['tree_graph'], applicabilities):
-            if criteria:
-                if "explainer" in criteria:
-                    explainers_filtered = [e for e in explainer_props if e["name"] in criteria["explainer"]]
+        # getting all the graphs from our trees already filtered
+        if len(tree_dict_filtered) != 0:
+            trees_already_filtered = [tree_filtered['tree_graph'] for key_filtered, tree_filtered in tree_dict_filtered.items()]
+        else:
+            trees_already_filtered = []
+        if sameStructure(tree['tree_graph'], trees_already_filtered) == False:
+            if check_applicability(tree['tree_graph'], applicabilities):
+                if criteria:
+                    if "explainer" in criteria:
+                        explainers_filtered = [e for e in explainer_props if e["name"] in criteria["explainer"]]
+                    else:
+                        explainers_filtered = filter_explainers_by_criteria(
+                            explainer_props, criteria)
+                    if filter_trees_by_criteria([e["name"] for e in explainers_filtered], tree):
+                        tree_dict_filtered[key] = tree
                 else:
-                    explainers_filtered = filter_explainers_by_criteria(
-                        explainer_props, criteria)
-                if filter_trees_by_criteria([e["name"] for e in explainers_filtered], tree):
                     tree_dict_filtered[key] = tree
-            else:
-                tree_dict_filtered[key] = tree
 
     query_subtree = [find_subtree(query_tree, query_subtree_id)]
     query_subtree_graph = convert_to_graph(
         query_subtree)['tree_1']['tree_graph']
-
     solution = {}
     for bt in tree_dict_filtered:
         tree_case = tree_dict_filtered[bt]['tree_graph']
