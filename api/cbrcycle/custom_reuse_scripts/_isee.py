@@ -1079,8 +1079,10 @@ def replace_subtree(data):
     usecase_context = get_usecase_context(query_case)
     applicabilities = explainers_applicability(
         usecase_context, explainer_props, ontology_props, False)
+    print("applicabilities", applicabilities);
 
     tree_dict = convert_to_graph(neighbours)
+    print("tree_dict", tree_dict);
     tree_dict_filtered = dict()
     for key, tree in tree_dict.items():
         if check_applicability(tree['tree_graph'], applicabilities):
@@ -1094,10 +1096,12 @@ def replace_subtree(data):
                     tree_dict_filtered[key] = tree
             else:
                 tree_dict_filtered[key] = tree
-
+    print("tree_dict_filtered", tree_dict_filtered);
     query_subtree = [find_subtree(query_tree, query_subtree_id)]
+    print("query_subtree", query_subtree);
     query_subtree_graph = convert_to_graph(
         query_subtree)['tree_1']['tree_graph']
+    print("query_subtree_graph", query_subtree_graph);
 
     solution = {}
     for bt in tree_dict_filtered:
@@ -1111,7 +1115,8 @@ def replace_subtree(data):
             # exclude recommending trees with exact match
             if edit_distance_value != 0:
                 solution[bt] = edit_distance_value
-                
+    print("solution", solution);
+    
     sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
     results = []
     k = min(len(sorted_BTs), data.get("k"))
@@ -1122,7 +1127,7 @@ def replace_subtree(data):
         # solution_no_root = remove_root(solution_json)
         modified_tree = get_modified_case(
             query_tree["data"], query_subtree[0]["data"], solution_json)
-    
+        print("modified_tree", modified_tree);
         tree_dict_filtered[solution_graph_format]["complete_json"]["data"] = modified_tree
         tree_dict_filtered[solution_graph_format]["complete_json"]["explanation"] = ""
         results.append(tree_dict_filtered[solution_graph_format]["complete_json"])
