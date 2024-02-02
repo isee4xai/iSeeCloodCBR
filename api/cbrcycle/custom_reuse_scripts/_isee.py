@@ -867,7 +867,7 @@ def build_adjacency_list(node_list, parent_child_dict):
     return adjacency_list
 
 
-def convert_to_graph(cases):
+def convert_to_graph(cases):   
     tree_dict, nodes_dict, parent_child_dict = {}, {}, {}
     node_list = ['r']  # Added 'r' as the default root node in the node list
     id_list = []  # List of node id's
@@ -1029,21 +1029,6 @@ def filter_nodes(node, nodes, result):
     return
 
 
-def find_subtree(_tree, _node_id):
-    parent_tree = copy.deepcopy(_tree)
-    for tree in parent_tree["data"]["trees"]:
-        nodes = tree.get('nodes', {})
-
-        selected_node = [n for k, n in nodes.items() if k == _node_id]
-        if selected_node:
-            result = {}
-            filter_nodes(selected_node[0], nodes, result)
-            tree['nodes'] = result
-            tree['root'] = selected_node[0]["id"]
-        else:
-            continue
-    return parent_tree
-
 def nlg_subtree(q_nodes, s_nodes):
     print(q_nodes)
     print(s_nodes)
@@ -1094,8 +1079,10 @@ def replace_subtree(data):
     usecase_context = get_usecase_context(query_case)
     applicabilities = explainers_applicability(
         usecase_context, explainer_props, ontology_props, False)
+    print("applicabilities", applicabilities);
 
     tree_dict = convert_to_graph(neighbours)
+    print("tree_dict", tree_dict);
     tree_dict_filtered = dict()
     for key, tree in tree_dict.items():
         # getting all the graphs from our trees already filtered
@@ -1116,9 +1103,13 @@ def replace_subtree(data):
                 else:
                     tree_dict_filtered[key] = tree
 
-    query_subtree = [find_subtree(query_tree, query_subtree_id)]
+    print("tree_dict_filtered", tree_dict_filtered);
+    query_subtree = [copy.deepcopy(query_tree)]
+    print("query_subtree", query_subtree);
     query_subtree_graph = convert_to_graph(
         query_subtree)['tree_1']['tree_graph']
+    print("query_subtree_graph", query_subtree_graph);
+    
     solution = {}
     for bt in tree_dict_filtered:
         tree_case = tree_dict_filtered[bt]['tree_graph']
@@ -1131,7 +1122,8 @@ def replace_subtree(data):
             # exclude recommending trees with exact match
             if edit_distance_value != 0:
                 solution[bt] = edit_distance_value
-                
+    print("solution", solution);
+    
     sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
     results = []
     k = min(len(sorted_BTs), data.get("k"))
@@ -1142,7 +1134,7 @@ def replace_subtree(data):
         # solution_no_root = remove_root(solution_json)
         modified_tree = get_modified_case(
             query_tree["data"], query_subtree[0]["data"], solution_json)
-    
+        print("modified_tree", modified_tree);
         tree_dict_filtered[solution_graph_format]["complete_json"]["data"] = modified_tree
         tree_dict_filtered[solution_graph_format]["complete_json"]["explanation"] = ""
         results.append(tree_dict_filtered[solution_graph_format]["complete_json"])
