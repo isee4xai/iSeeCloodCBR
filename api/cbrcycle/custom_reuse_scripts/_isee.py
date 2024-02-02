@@ -1041,7 +1041,7 @@ def match_questions(bt1, bt2):
     # match only if both counters are not empty and equal
     return bool(questions_bt1) and bool(questions_bt2) and questions_bt1 == questions_bt2
 
-def removeQuestions(bt_with_questions):
+def remove_questions(bt_with_questions):
     bt_no_questions = bt_with_questions
     nodes_to_add = list()
     for node in bt_no_questions['nodes']:
@@ -1052,8 +1052,8 @@ def removeQuestions(bt_with_questions):
     bt_no_questions["nodes"] = nodes_to_add
     return bt_no_questions
 
-def sameStructure(bt1, bts_list):
-    bt1_noq = removeQuestions(bt1)
+def is_same_structure(bt1, bts_list):
+    bt1_noq = remove_questions(bt1)
     bts_noq = list(map(removeQuestions, bts_list)) 
     return bt1_noq in bts_noq
 
@@ -1079,18 +1079,19 @@ def replace_subtree(data):
     usecase_context = get_usecase_context(query_case)
     applicabilities = explainers_applicability(
         usecase_context, explainer_props, ontology_props, False)
-    print("applicabilities", applicabilities);
+
+    query_subtree = [copy.deepcopy(query_tree)]
+    query_subtree_graph = convert_to_graph(
+        query_subtree)['tree_1']['tree_graph']
 
     tree_dict = convert_to_graph(neighbours)
-    print("tree_dict", tree_dict);
+
     tree_dict_filtered = dict()
     for key, tree in tree_dict.items():
         # getting all the graphs from our trees already filtered
-        if len(tree_dict_filtered) != 0:
-            trees_already_filtered = [tree_filtered['tree_graph'] for key_filtered, tree_filtered in tree_dict_filtered.items()]
-        else:
-            trees_already_filtered = []
-        if not sameStructure(tree['tree_graph'], trees_already_filtered) and check_applicability(tree['tree_graph'], applicabilities):
+        trees_already_filtered = [query_subtree_graph]
+        trees_already_filtered.extend([tree_filtered['tree_graph'] for key_filtered, tree_filtered in tree_dict_filtered.items()])
+        if not is_same_structure(tree['tree_graph'], trees_already_filtered) and check_applicability(tree['tree_graph'], applicabilities):
             if criteria:
                 if "explainer" in criteria:
                     explainers_filtered = [e for e in explainer_props if e["name"] in criteria["explainer"]]
@@ -1101,13 +1102,6 @@ def replace_subtree(data):
                     tree_dict_filtered[key] = tree
             else:
                 tree_dict_filtered[key] = tree
-
-    print("tree_dict_filtered", tree_dict_filtered);
-    query_subtree = [copy.deepcopy(query_tree)]
-    print("query_subtree", query_subtree);
-    query_subtree_graph = convert_to_graph(
-        query_subtree)['tree_1']['tree_graph']
-    print("query_subtree_graph", query_subtree_graph);
     
     solution = {}
     for bt in tree_dict_filtered:
@@ -1121,7 +1115,6 @@ def replace_subtree(data):
             # exclude recommending trees with exact match
             if edit_distance_value != 0:
                 solution[bt] = edit_distance_value
-    print("solution", solution);
     
     sorted_BTs = sorted(solution.items(), key=lambda x: x[1])
     results = []
@@ -1133,7 +1126,6 @@ def replace_subtree(data):
         # solution_no_root = remove_root(solution_json)
         modified_tree = get_modified_case(
             query_tree["data"], query_subtree[0]["data"], solution_json)
-        print("modified_tree", modified_tree);
         tree_dict_filtered[solution_graph_format]["complete_json"]["data"] = modified_tree
         tree_dict_filtered[solution_graph_format]["complete_json"]["explanation"] = ""
         results.append(tree_dict_filtered[solution_graph_format]["complete_json"])
