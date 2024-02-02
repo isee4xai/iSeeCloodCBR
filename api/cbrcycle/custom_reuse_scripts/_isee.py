@@ -1054,7 +1054,7 @@ def remove_questions(bt_with_questions):
 
 def is_same_structure(bt1, bts_list):
     bt1_noq = remove_questions(bt1)
-    bts_noq = list(map(removeQuestions, bts_list)) 
+    bts_noq = list(map(remove_questions, bts_list)) 
     return bt1_noq in bts_noq
 
 def replace_subtree(data):
