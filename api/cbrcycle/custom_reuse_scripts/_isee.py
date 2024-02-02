@@ -1090,18 +1090,17 @@ def replace_subtree(data):
             trees_already_filtered = [tree_filtered['tree_graph'] for key_filtered, tree_filtered in tree_dict_filtered.items()]
         else:
             trees_already_filtered = []
-        if sameStructure(tree['tree_graph'], trees_already_filtered) == False:
-            if check_applicability(tree['tree_graph'], applicabilities):
-                if criteria:
-                    if "explainer" in criteria:
-                        explainers_filtered = [e for e in explainer_props if e["name"] in criteria["explainer"]]
-                    else:
-                        explainers_filtered = filter_explainers_by_criteria(
-                            explainer_props, criteria)
-                    if filter_trees_by_criteria([e["name"] for e in explainers_filtered], tree):
-                        tree_dict_filtered[key] = tree
+        if not sameStructure(tree['tree_graph'], trees_already_filtered) and check_applicability(tree['tree_graph'], applicabilities):
+            if criteria:
+                if "explainer" in criteria:
+                    explainers_filtered = [e for e in explainer_props if e["name"] in criteria["explainer"]]
                 else:
+                    explainers_filtered = filter_explainers_by_criteria(
+                        explainer_props, criteria)
+                if filter_trees_by_criteria([e["name"] for e in explainers_filtered], tree):
                     tree_dict_filtered[key] = tree
+            else:
+                tree_dict_filtered[key] = tree
 
     print("tree_dict_filtered", tree_dict_filtered);
     query_subtree = [copy.deepcopy(query_tree)]
