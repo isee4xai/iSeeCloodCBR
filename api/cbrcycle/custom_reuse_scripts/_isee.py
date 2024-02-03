@@ -52,7 +52,7 @@ def transform_adapt(input=None):
             pair_obj['case'] = case_side
             res.append(pair_obj)
     pairings = res
-    adapted_solution = adapt_solution(pairings, neighbours)
+    adapted_solution = adapt_solution(query_questions, pairings, neighbours)
 
     return {
         "pairings": pairings,
@@ -265,9 +265,9 @@ def clean_uuid(nodes, root_id):
     return new_nodes, root_id
 
 
-def adapt_solution(pairs, neighbours):
+def adapt_solution(query_qs, pairs, neighbours):
     sub_trees = []
-    for idx in range(len(pairs)):
+    for idx in range(len(query_qs)):
         matched_pair = get_from_id_key(idx, pairs, 'query')
         if not matched_pair:
             continue
