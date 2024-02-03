@@ -449,8 +449,10 @@ def get_usecase_context(usecase):
     context["ai_task"] = usecase["settings"]["ai_task"]
     context["ai_method"] = usecase["settings"]["ai_method"]
     context["dataset_type"] = usecase["settings"]["dataset_type"]
-    context["implementation"] = usecase["model"]["backend"]
-    context["model_mode"] = "http://www.w3id.org/iSeeOnto/explainer#File_access" if usecase["model"]["mode"] == "file" else "http://www.w3id.org/iSeeOnto/explainer#URL_access" if usecase["model"]["mode"] == "api" else "http://www.w3id.org/iSeeOnto/explainer#Any_access"
+    if usecase["model"]["backend"]:
+        context["implementation"] = usecase["model"]["backend"]
+    if usecase["model"]["mode"]:
+        context["model_mode"] = "http://www.w3id.org/iSeeOnto/explainer#File_access" if usecase["model"]["mode"] == "file" else "http://www.w3id.org/iSeeOnto/explainer#URL_access" if usecase["model"]["mode"] == "api" else "http://www.w3id.org/iSeeOnto/explainer#Any_access"
     context["has_training_data"] = usecase["model"]["dataset_file"] is not None
 
     return context
@@ -499,7 +501,7 @@ def explainer_applicability(context, explainer, ontology_props, explain):
                 format_attr(explainer["dataset_type"], 0,
                             "DatasetType", ontology_props) + " data."
 
-    if ANY_URI not in explainer["implementation"] and context["implementation"] not in explainer["implementation"]:
+    if ANY_URI not in explainer["implementation"] and ("implementation" not in context or context["implementation"] not in explainer["implementation"]):
         flag = False
         if explain:
             msg = msg+"\n- Implementation Mismatch: This is a " + \
@@ -524,7 +526,7 @@ def explainer_applicability(context, explainer, ontology_props, explain):
                 format_attr(context["ai_task"], 3, "AITask",
                             ontology_props) + " tasks."
             
-    if ANY_ACCESS_URI != explainer["model_access"] and explainer["model_access"] != context["model_mode"]:
+    if ANY_ACCESS_URI != explainer["model_access"] and ("model_mode" not in context or explainer["model_access"] != context["model_mode"]):
         flag = False
         if explain:
             msg = msg+"\n- Model Access Mismatch: " + explainer["name"] + " does not support " + \
