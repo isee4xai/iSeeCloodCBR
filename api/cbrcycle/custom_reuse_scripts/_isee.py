@@ -490,6 +490,8 @@ def format_attr(attr, code, key, ontology_prop):
 
 
 def explainer_applicability(context, explainer, ontology_props, explain):
+    print("context", context)
+    print("explainer", explainer)
     flag, msg = True, ''
     if context["dataset_type"] != explainer["dataset_type"]:
         flag = False
