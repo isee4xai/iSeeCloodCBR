@@ -490,8 +490,6 @@ def format_attr(attr, code, key, ontology_prop):
 
 
 def explainer_applicability(context, explainer, ontology_props, explain):
-    print("context", context)
-    print("explainer", explainer)
     flag, msg = True, ''
     if context["dataset_type"] != explainer["dataset_type"]:
         flag = False
@@ -503,7 +501,7 @@ def explainer_applicability(context, explainer, ontology_props, explain):
                 format_attr(explainer["dataset_type"], 0,
                             "DatasetType", ontology_props) + " data."
 
-    if ANY_URI not in explainer["implementation"] and ("implementation" not in context or context["implementation"] not in explainer["implementation"]):
+    if ANY_URI not in explainer["implementation"] and "implementation" in context and context["implementation"] not in explainer["implementation"]:
         flag = False
         if explain:
             msg = msg+"\n- Implementation Mismatch: This is a " + \
@@ -528,7 +526,7 @@ def explainer_applicability(context, explainer, ontology_props, explain):
                 format_attr(context["ai_task"], 3, "AITask",
                             ontology_props) + " tasks."
             
-    if ANY_ACCESS_URI != explainer["model_access"] and ("model_mode" not in context or explainer["model_access"] != context["model_mode"]):
+    if ANY_ACCESS_URI != explainer["model_access"] and "model_mode" in context and explainer["model_access"] != context["model_mode"]:
         flag = False
         if explain:
             msg = msg+"\n- Model Access Mismatch: " + explainer["name"] + " does not support " + \
