@@ -41,7 +41,9 @@ def transform_adapt(input=None):
     pairings, score, neighbours_considered, intent_overlap, case_questions = MATCH(
         query_questions, neighbours, 1, acceptance_threshold)
     # get details of pairings
-
+    print("query_questions", query_questions)
+    print("pairings", pairings)
+    
     res = []
     for k, v in pairings.items():
         pair_obj = {}
@@ -52,6 +54,7 @@ def transform_adapt(input=None):
             pair_obj['case'] = case_side
             res.append(pair_obj)
     pairings = res
+    print("pairings", pairings)
     adapted_solution = adapt_solution(pairings, neighbours)
 
     return {
