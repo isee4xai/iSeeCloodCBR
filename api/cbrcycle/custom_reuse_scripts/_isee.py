@@ -445,17 +445,19 @@ DELETION_COST = 1.
 LEAVE_CHANGE = 1.
 DEFAULT_COST = 100
 
+MISC_EXPLAINERS = ['/Misc/AIModelPerformance']
+
 
 def get_usecase_context(usecase):
     context = {}
     context["ai_task"] = usecase["settings"]["ai_task"]
     context["ai_method"] = usecase["settings"]["ai_method"]
     context["dataset_type"] = usecase["settings"]["dataset_type"]
-    if usecase["model"]["backend"]:
+    # only if AI model upload section is complete
+    if usecase["model"]["backend"] and usecase["model"]["mode"]:
         context["implementation"] = usecase["model"]["backend"]
-    if usecase["model"]["mode"]:
         context["model_mode"] = "http://www.w3id.org/iSeeOnto/explainer#File_access" if usecase["model"]["mode"] == "file" else "http://www.w3id.org/iSeeOnto/explainer#URL_access" if usecase["model"]["mode"] == "api" else "http://www.w3id.org/iSeeOnto/explainer#Any_access"
-    context["has_training_data"] = usecase["model"]["dataset_file"] is not None
+        context["has_training_data"] = usecase["model"]["dataset_file"] is not None
 
     return context
 
@@ -493,7 +495,7 @@ def format_attr(attr, code, key, ontology_prop):
 
 def explainer_applicability(context, explainer, ontology_props, explain):
     flag, msg = True, ''
-    if context["dataset_type"] != explainer["dataset_type"]:
+    if explainer["name"] not in MISC_EXPLAINERS and context["dataset_type"] != explainer["dataset_type"]:
         flag = False
         if explain:
             msg = msg+"\n- Dataset Type Mismatch: The model uses " + \
@@ -534,7 +536,7 @@ def explainer_applicability(context, explainer, ontology_props, explain):
             msg = msg+"\n- Model Access Mismatch: " + explainer["name"] + " does not support " + \
                 context["model_mode"]+ " model access."
 
-    if explainer["needs_training_data"] == "true" and not context["has_training_data"]:
+    if explainer["needs_training_data"] == "true" and "has_training_data" in context  and not context["has_training_data"]:
         flag = False
         if explain:
             msg = msg+"\n- Explainer requires training data."
