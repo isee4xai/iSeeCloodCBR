@@ -531,8 +531,8 @@ def explainer_applicability(context, explainer, ontology_props, explain):
     if (ANY_ACCESS_URI != explainer["model_access"]) and ("model_mode" not in context or explainer["model_access"] != context["model_mode"]):
         flag = False
         if explain:
-            msg = msg+"\n- Model Access Mismatch: " + explainer["name"] + " does not support " + \
-                context["model_mode"]+ " model access."
+            msg = msg+"\n- Model Access Mismatch: " + explainer["name"] + " only supports " + \
+                explainer["model_access"]+ " model access."
 
     if explainer["needs_training_data"] == "true" and ("has_training_data" not in context  or not context["has_training_data"]):
         flag = False
