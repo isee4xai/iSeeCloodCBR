@@ -805,6 +805,7 @@ def cbr_retrieve(event, context=None):
     if counter == 0:
       result['recommended'] = copy.deepcopy(entry)   # Make recommended case the first case in the result
     entry['score__'] = hit['_score']  # removed during an update operation
+    entry['id__'] = hit['_id']
     result['bestK'].append(entry)
     if addExplanation:  # if retrieval needs an explanation included
       entry['match_explanation'] = retrieve.get_explain_details(hit['_explanation'])
