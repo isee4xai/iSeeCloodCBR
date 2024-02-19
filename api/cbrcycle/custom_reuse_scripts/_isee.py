@@ -278,8 +278,7 @@ def repair_pairings(query_qs, pairs, intent):
             # unpaired question
             if not matched_pair:
                 candicate_pair = copy.deepcopy(pairs[0])
-                candicate_pair['query'] = {'id': str(len(updated_pairs)), 'k': -1,
-               'intent': intent, 'question': query_qs[idx]}
+                candicate_pair['query'] = query_qs[idx]
                 updated_pairs.append(candicate_pair)
     print("updated_pairs", updated_pairs)
     return updated_pairs
