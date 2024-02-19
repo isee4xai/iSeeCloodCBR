@@ -48,10 +48,12 @@ def transform_adapt(input=None):
         query_side = get_from_id(k, query_questions)
         if v is not None:
             case_side = get_from_id(v, case_questions)
-            pair_obj['query'] = query_side
-            pair_obj['case'] = case_side
-            res.append(pair_obj)
-    pairings = res
+            if case_side:
+                pair_obj['query'] = query_side
+                pair_obj['case'] = case_side
+                res.append(pair_obj)
+
+    pairings = repair_pairings(query_questions, res,  query_case['UserIntent'])
     adapted_solution = adapt_solution(query_questions, pairings, neighbours)
 
     return {
@@ -264,6 +266,23 @@ def clean_uuid(nodes, root_id):
         new_nodes.append(node)
     return new_nodes, root_id
 
+def repair_pairings(query_qs, pairs, intent):
+    print("pairs", pairs)
+    print("query_qs", query_qs)
+    # more questions than paired questions
+    updated_pairs = copy.deepcopy(pairs)
+    if len(query_qs) > len(pairs):
+        # find the unpaired questions and reuse sample pair
+        for idx in range(len(query_qs)):
+            matched_pair = get_from_id_key(idx, pairs, 'query')
+            # unpaired question
+            if not matched_pair:
+                candicate_pair = copy.deepcopy(pairs[0])
+                candicate_pair['query'] = {'id': str(len(updated_pairs)), 'k': -1,
+               'intent': intent, 'question': query_qs[idx]}
+                updated_pairs.append(candicate_pair)
+    print("updated_pairs", updated_pairs)
+    return updated_pairs
 
 def adapt_solution(query_qs, pairs, neighbours):
     sub_trees = []
